@@ -1,7 +1,31 @@
 import React, { useState } from "react";
 
 function App() {
-  // ... your states and constants ...
+  // Declare your state variables at the very top
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [sources, setSources] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Declare constants needed across the component
+  const urlParams = new URLSearchParams(window.location.search);
+  const clientId = urlParams.get("client") || "maximos";
+  const chatId = "demo-session-1";
+
+  const clientConfig = {
+    maximos: { label: "St. Maximos" },
+    ordinance: { label: "Brandon Ordinance" },
+  };
+  const clientLabel = clientConfig[clientId]?.label || "Your Assistant";
+
+  // Handler for enter key press
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
   // Backend URL
   const BACKEND_URL = "https://sdcl-backend.onrender.com";
@@ -40,16 +64,16 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };  // <-- This closing brace and semicolon were missing!
+  };
 
-  // Component render
+  // Component JSX
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", maxWidth: 700, margin: "auto" }}>
       <h2>Ask {clientLabel}</h2>
       <textarea
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        onKeyDown={handleKeyDown}  // <<< HERE
+        onKeyDown={handleKeyDown}
         rows={4}
         cols={60}
         placeholder={`Ask your question to ${clientLabel}...`}
