@@ -1,34 +1,12 @@
 import React, { useState } from "react";
 
 function App() {
-  // State hooks for user question, response, sources, loading & error
-  const [question, setQuestion] = useState("");
-  const [response, setResponse] = useState("");
-  const [sources, setSources] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // ... your states and constants ...
 
-  // Get client ID from URL param (default to 'maximos')
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientId = urlParams.get("client") || "maximos";
-  const chatId = "demo-session-1"; // Could randomize or persist later
+  // Backend URL
+  const BACKEND_URL = "https://sdcl-backend.onrender.com";
 
-  // Client labels to display user-friendly names
-  const clientConfig = {
-    maximos: { label: "St. Maximos" },
-    ordinance: { label: "Brandon Ordinance" },
-  };
-  const clientLabel = clientConfig[clientId]?.label || "Your Assistant";
-
-  // Add this handler for key presses inside the textarea:
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevents newline on Enter without Shift
-      handleSubmit();
-    }
-  };
-
-  // Handle submit - send question to backend API
+  // Submit handler
   const handleSubmit = async () => {
     setError(null);
     if (!question.trim()) {
@@ -39,7 +17,7 @@ function App() {
     setResponse("");
     setSources([]);
     try {
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -62,8 +40,9 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  };  // <-- This closing brace and semicolon were missing!
 
+  // Component render
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", maxWidth: 700, margin: "auto" }}>
       <h2>Ask {clientLabel}</h2>
@@ -118,6 +97,10 @@ function App() {
       )}
     </div>
   );
+}
+
+export default App;
+
 }
 
 export default App;
