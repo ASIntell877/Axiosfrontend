@@ -1,23 +1,38 @@
 import React, { useState } from "react";
 
 function App() {
-  // Declare your state variables at the very top
+  // 🔄 State hooks
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState("");
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Declare constants needed across the component
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientId = urlParams.get("client") || "maximos";
-  const chatId = "demo-session-1";
+  // 🌐 Determine clientId
+  let clientId;
 
+  // 1. Try to get from query string
+  const urlParams = new URLSearchParams(window.location.search);
+  clientId = urlParams.get("client");
+
+  // 2. If not in query, try to extract from pathname
+  if (!clientId) {
+    const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
+    clientId = pathMatch ? pathMatch[1] : "maximos";
+  }
+
+  // 🧠 Optional: Fallback if unknown client
   const clientConfig = {
     maximos: { label: "St. Maximos" },
     ordinance: { label: "Brandon Ordinance" },
   };
-  const clientLabel = clientConfig[clientId]?.label || "Your Assistant";
+
+  if (!clientConfig[clientId]) {
+    clientId = "maximos";
+  }
+
+  const clientLabel = clientConfig[clientId].label;
+  const chatId = "demo-session-1";
 
   // Handler for enter key press
   const handleKeyDown = (e) => {
