@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/maximos", "destination": "/?client=maximos" },
+    { "source": "/ordinance", "destination": "/?client=ordinance" }
+  ]
+}
