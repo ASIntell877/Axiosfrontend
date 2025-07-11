@@ -10,9 +10,9 @@ function App() {
 
   const recaptchaRef = useRef();
   const BACKEND_URL = "https://sdcl-backend.onrender.com";
-  const SITE_KEY = "your_recaptcha_site_key"; // Replace with real key
+  const SITE_KEY = "6Ldn_H4rAAAAAMTuKBGKbUyOfq9EOBdLWMqJ4gh4"; // 🔁 Replace with your real site key
 
-  // 🔍 Detect client ID
+  // Detect clientId
   let clientId;
   const urlParams = new URLSearchParams(window.location.search);
   clientId = urlParams.get("client");
@@ -25,12 +25,10 @@ function App() {
     maximos: { label: "St. Maximos" },
     ordinance: { label: "Brandon Ordinance" },
     marketingasst: { label: "Parish Marketing Assistant" },
+    samuel: { label: "Samuel Kelly" },
   };
 
-  if (!clientConfig[clientId]) {
-    clientId = "maximos";
-  }
-
+  if (!clientConfig[clientId]) clientId = "maximos";
   const clientLabel = clientConfig[clientId].label;
   const chatId = "demo-session-1";
 
@@ -53,22 +51,19 @@ function App() {
     setSources([]);
 
     try {
-      // ✅ 1. Trigger invisible reCAPTCHA
       const recaptchaToken = await recaptchaRef.current.executeAsync();
       recaptchaRef.current.reset();
 
-      // ✅ 2. Submit to backend with recaptcha_token
-      const res = await fetch(`${BACKEND_URL}/chat`, {
+      const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": "your_x_api_key", // Optional if you're securing with it
         },
         body: JSON.stringify({
           chat_id: chatId,
           client_id: clientId,
           question,
-          recaptcha_token: recaptchaToken, // 👈 required by backend
+          recaptcha_token: recaptchaToken,
         }),
       });
 
@@ -78,8 +73,8 @@ function App() {
       setResponse(data.answer);
       setSources(data.source_documents || []);
     } catch (err) {
-      setError("Error connecting to server.");
       console.error("Fetch error:", err);
+      setError("Error connecting to server.");
     } finally {
       setLoading(false);
     }
@@ -112,13 +107,14 @@ function App() {
         {loading ? "Thinking..." : "Send"}
       </button>
 
-      <ReCAPTCHA
-        ref={recaptchaRef}
-        size="invisible"
-        sitekey={SITE_KEY}
-      />
+      {/* Invisible reCAPTCHA */}
+      <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={SITE_KEY} />
 
-      {error && <p style={{ color: "red", marginTop: "1rem" }}><strong>{error}</strong></p>}
+      {error && (
+        <p style={{ color: "red", marginTop: "1rem" }}>
+          <strong>{error}</strong>
+        </p>
+      )}
 
       {!!response && (
         <div style={{ marginTop: "2rem", whiteSpace: "pre-wrap" }}>
