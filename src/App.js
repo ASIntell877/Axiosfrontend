@@ -1,27 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 function App() {
-  // 🔄 State hooks
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState("");
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🌐 Determine clientId
-  let clientId;
+  const recaptchaRef = useRef();
+  const BACKEND_URL = "https://sdcl-backend.onrender.com";
+  const SITE_KEY = "your_recaptcha_site_key"; // Replace with real key
 
-  // 1. Try to get from query string
+  // 🔍 Detect client ID
+  let clientId;
   const urlParams = new URLSearchParams(window.location.search);
   clientId = urlParams.get("client");
-
-  // 2. If not in query, try to extract from pathname
   if (!clientId) {
     const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
     clientId = pathMatch ? pathMatch[1] : "maximos";
   }
 
-  // 🧠 Optional: Fallback if unknown client
   const clientConfig = {
     maximos: { label: "St. Maximos" },
     ordinance: { label: "Brandon Ordinance" },
@@ -34,7 +33,6 @@ function App() {
   const clientLabel = clientConfig[clientId].label;
   const chatId = "demo-session-1";
 
-  // Handler for enter key press
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -42,33 +40,38 @@ function App() {
     }
   };
 
-  // Backend URL
-  const BACKEND_URL = "https://sdcl-backend.onrender.com";
-
-  // Submit handler
   const handleSubmit = async () => {
     setError(null);
     if (!question.trim()) {
       setError("Please enter a question.");
       return;
     }
+
     setLoading(true);
     setResponse("");
     setSources([]);
+
     try {
+      // ✅ 1. Trigger invisible reCAPTCHA
+      const recaptchaToken = await recaptchaRef.current.executeAsync();
+      recaptchaRef.current.reset();
+
+      // ✅ 2. Submit to backend with recaptcha_token
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "your_x_api_key", // Optional if you're securing with it
+        },
         body: JSON.stringify({
           chat_id: chatId,
           client_id: clientId,
           question,
+          recaptcha_token: recaptchaToken, // 👈 required by backend
         }),
       });
 
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
 
       const data = await res.json();
       setResponse(data.answer);
@@ -81,7 +84,6 @@ function App() {
     }
   };
 
-  // Component JSX
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", maxWidth: 700, margin: "auto" }}>
       <h2>Ask {clientLabel}</h2>
@@ -109,11 +111,13 @@ function App() {
         {loading ? "Thinking..." : "Send"}
       </button>
 
-      {error && (
-        <p style={{ color: "red", marginTop: "1rem" }}>
-          <strong>{error}</strong>
-        </p>
-      )}
+      <ReCAPTCHA
+        ref={recaptchaRef}
+        size="invisible"
+        sitekey={SITE_KEY}
+      />
+
+      {error && <p style={{ color: "red", marginTop: "1rem" }}><strong>{error}</strong></p>}
 
       {!!response && (
         <div style={{ marginTop: "2rem", whiteSpace: "pre-wrap" }}>
