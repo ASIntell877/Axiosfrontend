@@ -24,6 +24,7 @@ function App() {
   const clientConfig = {
     maximos: { label: "St. Maximos" },
     ordinance: { label: "Brandon Ordinance" },
+    marketingasst: { label: "Parish Marketing Assistant" },
   };
 
   if (!clientConfig[clientId]) {
