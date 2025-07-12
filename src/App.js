@@ -52,6 +52,7 @@ function App() {
 
     try {
       const recaptchaToken = await recaptchaRef.current.executeAsync();
+      console.log("Sending reCAPTCHA token:", recaptchaToken);
       recaptchaRef.current.reset();
 
       const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
