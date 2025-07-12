@@ -113,7 +113,12 @@ function App() {
       </button>
 
       {/* Invisible reCAPTCHA */}
-      <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={SITE_KEY} />
+      <ReCAPTCHA
+        ref={recaptchaRef}
+        size="invisible"
+        sitekey={SITE_KEY}
+        badge="bottomright"
+      />
 
       {error && (
         <p style={{ color: "red", marginTop: "1rem" }}>
