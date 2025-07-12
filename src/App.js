@@ -40,47 +40,51 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    setError(null);
-    if (!question.trim()) {
-      setError("Please enter a question.");
-      return;
-    }
+  setError(null);
+  if (!question.trim()) {
+    setError("Please enter a question.");
+    return;
+  }
 
-    setLoading(true);
-    setResponse("");
-    setSources([]);
+  setLoading(true);
+  setResponse("");
+  setSources([]);
 
-    try {
-      const recaptchaToken = await recaptchaRef.current.executeAsync();
-      console.log("Sending reCAPTCHA token:", recaptchaToken);
-      recaptchaRef.current.reset();
+  try {
+    // Get new token for each request
+    const recaptchaToken = await recaptchaRef.current.executeAsync();
+    console.log("🔐 reCAPTCHA token:", recaptchaToken);
 
-      const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          client_id: clientId,
-          question,
-          recaptcha_token: recaptchaToken,
-        }),
-      });
+    // Immediately reset for the next attempt
+    recaptchaRef.current.reset();
 
-      if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+    // Now send to backend right away
+    const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        client_id: clientId,
+        question,
+        recaptcha_token: recaptchaToken,
+      }),
+    });
 
-      const data = await res.json();
-      setResponse(data.answer);
-      setSources(data.source_documents || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setError("Error connecting to server.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
 
+    const data = await res.json();
+    setResponse(data.answer);
+    setSources(data.source_documents || []);
+  } catch (err) {
+    console.error("❌ Fetch error:", err);
+    setError("Error connecting to server.");
+  } finally {
+    setLoading(false);
+  }
+};
+ 
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", maxWidth: 700, margin: "auto" }}>
       <h2>Ask {clientLabel}</h2>
