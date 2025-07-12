@@ -113,7 +113,11 @@ function App() {
       </button>
 
       {/* Invisible reCAPTCHA */}
-      <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={SITE_KEY} />
+      <ReCAPTCHA
+        ref={recaptchaRef}
+        sitekey={SITE_KEY}
+        onChange={(token) => console.log("Manual token:", token)}
+     />
 
       {error && (
         <p style={{ color: "red", marginTop: "1rem" }}>
