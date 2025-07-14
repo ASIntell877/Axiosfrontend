@@ -32,8 +32,8 @@ function App() {
     },
     ordinance: {
       label: "Brandon Ordinance",
-      backgroundColor: "#ffeaa7",
-      fontFamily: "'Roboto', sans-serif",
+      backgroundColor: "#003366",
+      fontFamily: "'Montserrat', sans-serif",
       logo: "/images/ordinance-logo.png",
       placeholder: "Ask about Brandon Ordinance...",
     },
