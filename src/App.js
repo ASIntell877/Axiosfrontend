@@ -3,7 +3,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 function App() {
   const [question, setQuestion] = useState("");
-  const [response, setResponse] = useState("");
+  const [messages, setMessages] = useState([]);
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,9 +25,9 @@ function App() {
   const clientConfig = {
     maximos: {
       label: "St. Maximos",
-      backgroundColor: "#dfe6e9",
+      backgroundColor: "/public/maximos1.png",
       fontFamily: "'Poppins', sans-serif",
-      logo: "/images/maximos-logo.png",
+      logo: "/public/axblue.png",
       placeholder: "Ask a question to St. Maximos...",
     },
     ordinance: {
@@ -46,9 +46,9 @@ function App() {
     },
     samuel: {
       label: "Samuel Kelly",
-      backgroundColor: "#a29bfe",
+      backgroundColor: "/public/samuel1.png",
       fontFamily: "'Montserrat', sans-serif",
-      logo: "/images/samuel-logo.png",
+      logo: "/public/axblue.png",
       placeholder: "Ask Samuel Kelly anything...",
     },
   };
@@ -72,8 +72,9 @@ function App() {
     }
 
     setLoading(true);
-    setResponse("");
     setSources([]);
+    setMessages((msgs) => [...msgs, { sender: "user", text: question }]);
+    setQuestion("");
 
     try {
       // Get new token for each request
@@ -100,7 +101,7 @@ function App() {
       if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
 
       const data = await res.json();
-      setResponse(data.answer);
+      setMessages((msgs) => [...msgs, { sender: "bot", text: data.answer }]);
       setSources(data.source_documents || []);
     } catch (err) {
       console.error("❌ Fetch error:", err);
@@ -131,61 +132,102 @@ function App() {
           marginBottom: "1rem",
           display: "block",
           margin: "auto",
+          display: "flex",
+          flexDirection: "column"
+          height: "90vh",
         }}
       />
 
-      {/* Display response above input */}
-      {!!response && (
-        <div
-          style={{
-            marginBottom: "2rem",
-            whiteSpace: "pre-wrap",
+      {/* Conversation */}
+      <div
+        style={{
+            flex: 1,
+            overflowY: "auto",
             padding: "1rem",
             backgroundColor: "#f4f4f9",
             borderRadius: "8px",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <strong>Response:</strong>
-          <p>{response}</p>
-        </div>
-      )}
+            marginBottom: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+            flex: 1,
+        }}
+             >
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            style={{
+              display: "flex",
+              justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+            }}
+          >
+            <div
+              style={{
+                maxWidth: "80%",
+                padding: "0.5rem 1rem",
+                borderRadius: "20px",
+                backgroundColor:
+                  msg.sender === "user" ? "#007BFF" : "#ffffff",
+                color: msg.sender === "user" ? "#ffffff" : "#000000",
+              }}
+            >
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ fontStyle: "italic" }}>Thinking...</div>
+        )}
+      </div>
 
       {/* Input area */}
-      <textarea
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        onKeyDown={handleKeyDown}
-        rows={4}
-        cols={60}
-        placeholder={client.placeholder} // Dynamic placeholder per client
+      <div
         style={{
-          width: "100%",
-          fontSize: "1rem",
-          padding: "0.5rem",
-          fontFamily: client.fontFamily, // Apply client-specific font
-        }}
-        disabled={loading}
-      />
-      <br />
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        style={{
-          marginTop: "1rem",
-          padding: "0.8rem 1.5rem",
-          fontSize: "1rem",
-          backgroundColor: "#007BFF",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: loading ? "not-allowed" : "pointer",
-          boxShadow: loading ? "none" : "0 2px 8px rgba(0, 0, 0, 0.1)",
-          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          marginTop: "auto",
+          gap: "0.5rem",
         }}
       >
-        {loading ? "Thinking..." : "Send"}
-      </button>
+       <textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          placeholder={client.placeholder}
+          style={{
+            flex: 1,
+            resize: "none",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            fontFamily: client.fontFamily,
+            borderRadius: "20px",
+          }}
+          disabled={loading}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            backgroundColor: "transparent",
+            border: "none",
+            cursor: loading ? "not-allowed" : "pointer",
+            fontSize: "1.5rem",
+            color: "#007BFF",
+            padding: 0,
+          }}
+        >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 512 512"
+          height="24"
+          width="24"
+          fill="currentColor"
+        >
+          <path d="M476 3.2 12 246c-20.2 10.1-19 39.7 1.9 48.3l111.8 43.9 43.9 111.8c8.6 20.9 38.2 22.1 48.3 1.9L508.8 36c8.4-17.3-9.7-35.4-26.8-32.8z" />
+        </svg>
+        </button>
+      </div>
 
       {/* Invisible reCAPTCHA */}
       <ReCAPTCHA
