@@ -106,16 +106,21 @@ function App() {
       setLoading(false);
     }
   };
-    const containerStyle = {
+  const containerStyle = {
     padding: "2rem",
     fontFamily: client.fontFamily,
     maxWidth: 700,
     margin: "auto",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column"
   };
 
   if (client.backgroundImage) {
     containerStyle.backgroundImage = client.backgroundImage;
     containerStyle.backgroundSize = "cover";
+    containerStyle.backgroundRepeat = "no-repeat";
+    containerStyle.backgroundPosition = "center";
   } else if (client.backgroundColor) {
     containerStyle.backgroundColor = client.backgroundColor;
   }
@@ -242,8 +247,18 @@ function App() {
           </ul>
         </div>
       )}
-    </div>
-  );
+  <footer
+    style={{
+      marginTop: "2rem",
+      fontSize: "0.8rem",
+      textAlign: "center",
+      opacity: 0.8,
+     }}
+   >
+     Built by Axiostrat Intelligence 2025
+   </footer>
+  </div>
+    );
 }
 
 export default App;
