@@ -133,7 +133,7 @@ function App() {
           display: "block",
           margin: "auto",
           display: "flex",
-          flexDirection: "column"
+          flexDirection: "column",
           height: "90vh",
         }}
       />
