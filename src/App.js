@@ -25,30 +25,26 @@ function App() {
   const clientConfig = {
     maximos: {
       label: "St. Maximos",
-      backgroundColor: "/public/maximos1.png",
+      backgroundImage: "url('/maximos1.png')",
       fontFamily: "'Poppins', sans-serif",
-      logo: "/public/axblue.png",
       placeholder: "Ask a question to St. Maximos...",
     },
     ordinance: {
       label: "Brandon Ordinance",
       backgroundColor: "#003366",
       fontFamily: "'Montserrat', sans-serif",
-      logo: "/images/ordinance-logo.png",
       placeholder: "Ask about Brandon Ordinance...",
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
       backgroundColor: "#f9ca24",
       fontFamily: "'Lato', sans-serif",
-      logo: "/images/marketingasst-logo.png",
       placeholder: "How can we help you today?",
     },
     samuel: {
       label: "Samuel Kelly",
-      backgroundColor: "/public/samuel1.png",
+      backgroundImage: "url('/samuel1.jpg')",
       fontFamily: "'Montserrat', sans-serif",
-      logo: "/public/axblue.png",
       placeholder: "Ask Samuel Kelly anything...",
     },
   };
@@ -110,34 +106,23 @@ function App() {
       setLoading(false);
     }
   };
+    const containerStyle = {
+    padding: "2rem",
+    fontFamily: client.fontFamily,
+    maxWidth: 700,
+    margin: "auto",
+  };
 
+  if (client.backgroundImage) {
+    containerStyle.backgroundImage = client.backgroundImage;
+    containerStyle.backgroundSize = "cover";
+  } else if (client.backgroundColor) {
+    containerStyle.backgroundColor = client.backgroundColor;
+  }
   return (
-    <div
-      style={{
-        padding: "2rem",
-        fontFamily: client.fontFamily,
-        backgroundColor: client.backgroundColor,
-        maxWidth: 700,
-        margin: "auto",
-      }}
-    >
+    <div style={containerStyle}>
       <h2>Ask {client.label}</h2>
       
-      {/* Display custom logo */}
-      <img
-        src={client.logo}
-        alt={`${client.label} Logo`}
-        style={{
-          width: "150px",
-          marginBottom: "1rem",
-          display: "block",
-          margin: "auto",
-          display: "flex",
-          flexDirection: "column",
-          height: "90vh",
-        }}
-      />
-
       {/* Conversation */}
       <div
         style={{
