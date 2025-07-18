@@ -30,7 +30,7 @@ function App() {
       backgroundImage: "url('/maximos1.png')",
       fontFamily: "'Lato', sans‑serif",
       placeholder: "Ask a question to St. Maximos...",
-      backgroundOpacity: 10,
+      backgroundOpacity: 3,
     },
     ordinance: {
       label: "Brandon Ordinance",
@@ -140,9 +140,8 @@ function App() {
       <h2>Ask {client.label}</h2>
 
       {/* Conversation (scrollable) */}
-      <div
-        ref={messagesContainerRef}            {/* ← here */}
-        style={{
+      
+      <div ref={messagesContainerRef} style={{
           flex: 1,
           overflowY: "auto",
           padding: "1rem",
