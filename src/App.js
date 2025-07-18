@@ -8,6 +8,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // toggle this to true if you ever want sources back:
+  const showSources = false;
+
   const { executeRecaptcha } = useGoogleReCaptcha();
   const BACKEND_URL = "https://sdcl-backend.onrender.com";
 
@@ -17,7 +20,7 @@ function App() {
   clientId = urlParams.get("client");
   if (!clientId) {
     const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
-    clientId = pathMatch ? pathMatch[1] : "maximos"; // Default to 'maximos' if no match
+    clientId = pathMatch ? pathMatch[1] : "maximos";
   }
 
   // Client-specific configurations
@@ -51,9 +54,7 @@ function App() {
       backgroundOpacity: 1,
     },
   };
-
-  const client = clientConfig[clientId] || clientConfig.maximos; // Default to 'maximos' if no match
-
+  const client = clientConfig[clientId] || clientConfig.maximos;
   const chatId = "demo-session-1";
 
   const handleKeyDown = (e) => {
@@ -71,24 +72,20 @@ function App() {
     }
 
     setLoading(true);
-    setSources([]);
+    if (showSources) setSources([]);
     setMessages((msgs) => [...msgs, { sender: "user", text: question }]);
     setQuestion("");
 
     try {
-      // Get new token for each request
       let recaptchaToken = "";
       if (executeRecaptcha) {
         recaptchaToken = await executeRecaptcha("chat");
         console.log("🔐 reCAPTCHA token:", recaptchaToken);
       }
 
-      // Now send to backend right away
       const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
           client_id: clientId,
@@ -96,12 +93,13 @@ function App() {
           recaptcha_token: recaptchaToken,
         }),
       });
-
       if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
 
       const data = await res.json();
       setMessages((msgs) => [...msgs, { sender: "bot", text: data.answer }]);
-      setSources(data.source_documents || []);
+      if (showSources) {
+        setSources(data.source_documents || []);
+      }
     } catch (err) {
       console.error("❌ Fetch error:", err);
       setError("Error connecting to server.");
@@ -109,50 +107,51 @@ function App() {
       setLoading(false);
     }
   };
+
   const containerStyle = {
     display: "flex",
+    flexDirection: "column",
+    height: "100vh",
     padding: "2rem",
     fontFamily: client.fontFamily,
     maxWidth: 700,
     margin: "auto",
-    height: "100vh",
-    flexDirection: "column",
     opacity: client.backgroundOpacity,
+    ...(client.backgroundImage
+      ? {
+          backgroundImage: client.backgroundImage,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+        }
+      : client.backgroundColor && { backgroundColor: client.backgroundColor }),
   };
 
-  if (client.backgroundImage) {
-    containerStyle.backgroundImage = client.backgroundImage;
-    containerStyle.backgroundSize = "cover";
-    containerStyle.backgroundRepeat = "no-repeat";
-    containerStyle.backgroundPosition = "center";
-  } else if (client.backgroundColor) {
-    containerStyle.backgroundColor = client.backgroundColor;
-  }
   return (
     <div style={containerStyle}>
       <h2>Ask {client.label}</h2>
-      
+
       {/* Conversation */}
       <div
         style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "1rem",
-            backgroundColor: "rgba(244, 244, 249, 0.8)",
-            borderRadius: "8px",
-            marginBottom: "1rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            flex: 1,
+          flex: 1,
+          overflowY: "auto",
+          padding: "1rem",
+          backgroundColor: "rgba(244, 244, 249, 0.8)",
+          borderRadius: "8px",
+          marginBottom: "1rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
         }}
-             >
+      >
         {messages.map((msg, idx) => (
           <div
             key={idx}
             style={{
               display: "flex",
-              justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+              justifyContent:
+                msg.sender === "user" ? "flex-end" : "flex-start",
             }}
           >
             <div
@@ -169,9 +168,7 @@ function App() {
             </div>
           </div>
         ))}
-        {loading && (
-          <div style={{ fontStyle: "italic" }}>Thinking...</div>
-        )}
+        {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
       </div>
 
       {/* Input area */}
@@ -183,7 +180,7 @@ function App() {
           gap: "0.5rem",
         }}
       >
-       <textarea
+        <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -212,50 +209,51 @@ function App() {
             padding: 0,
           }}
         >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 512 512"
-          height="24"
-          width="24"
-          fill="currentColor"
-        >
-          <path d="M476 3.2 12 246c-20.2 10.1-19 39.7 1.9 48.3l111.8 43.9 43.9 111.8c8.6 20.9 38.2 22.1 48.3 1.9L508.8 36c8.4-17.3-9.7-35.4-26.8-32.8z" />
-        </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+            height="24"
+            width="24"
+            fill="currentColor"
+          >
+            <path d="M476 3.2 12 246c-20.2 10.1-19 39.7 1.9 48.3l111.8 43.9 43.9 111.8c8.6 20.9 38.2 22.1 48.3 1.9L508.8 36c8.4-17.3-9.7-35.4-26.8-32.8z" />
+          </svg>
         </button>
       </div>
 
-      {/* Display error if any */}
+      {/* Error */}
       {error && (
         <p style={{ color: "red", marginTop: "1rem" }}>
           <strong>{error}</strong>
         </p>
       )}
 
-      {/* Display source documents */}
-      {sources.length > 0 && (
+      {/* Sources (only if showSources = true) */}
+      {showSources && sources.length > 0 && (
         <div style={{ marginTop: "1rem" }}>
           <strong>Sources:</strong>
           <ul>
-            {sources.map((doc, index) => (
-              <li key={index} style={{ marginBottom: "0.5rem" }}>
+            {sources.map((doc, i) => (
+              <li key={i} style={{ marginBottom: "0.5rem" }}>
                 <em>{doc.source}</em>: {doc.text}
               </li>
             ))}
           </ul>
         </div>
       )}
-  <footer
-    style={{
-      marginTop: "2rem",
-      fontSize: "0.8rem",
-      textAlign: "center",
-      opacity: 0.8,
-     }}
-   >
-     © 2025 Axiostrat Intelligence LLC. All rights reserved.
-   </footer>
-  </div>
-    );
+
+      <footer
+        style={{
+          marginTop: "2rem",
+          fontSize: "0.8rem",
+          textAlign: "center",
+          opacity: 0.8,
+        }}
+      >
+        © 2025 Axiostrat Intelligence LLC. All rights reserved.
+      </footer>
+    </div>
+  );
 }
 
 export default App;
