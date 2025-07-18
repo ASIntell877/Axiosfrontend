@@ -27,7 +27,7 @@ function App() {
   const clientConfig = {
     maximos: {
       label: "St. Maximos",
-      backgroundImage: "url('/maximos1.png')",
+      backgroundImage: "url('/maximos2.png')",
       fontFamily: "'Lato', sans‑serif",
       placeholder: "Ask a question to St. Maximos...",
       backgroundOpacity: 3,
