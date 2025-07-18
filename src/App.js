@@ -26,10 +26,10 @@ function App() {
   // Client configs...
   const clientConfig = {
     maximos: {
-      label: "St. Maximos",
+      label: "St. Maximos the Confessor",
       backgroundImage: "url('/maximos2.jpg')",
       fontFamily: "'Lato', sans‑serif",
-      placeholder: "Ask a question to St. Maximos...",
+      placeholder: "Seek counsel from St. Maximos...",
       backgroundOpacity: 3,
     },
     ordinance: {
@@ -37,7 +37,7 @@ function App() {
       backgroundColor: "#003366",
       fontFamily: "'Montserrat', sans‑serif",
       placeholder: "Ask about Brandon Ordinance...",
-      backgroundOpacity: 1,
+      backgroundOpacity: 3,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
@@ -137,7 +137,7 @@ function App() {
 
   return (
     <div style={containerStyle}>
-      <h2>Ask {client.label}</h2>
+      <h2>{client.label}</h2>
 
       {/* Conversation (scrollable) */}
       
@@ -260,8 +260,8 @@ function App() {
         }}
       >
         © 2025 Axiostrat Intelligence LLC. All rights reserved.<br></br>
-        This site is protected by reCAPTCHA and the Google 
-        <a href="https://policies.google.com/privacy">Privacy Policy</a>  and 
+        This site is protected by reCAPTCHA and the Google{" "}
+        <a href="https://policies.google.com/privacy">Privacy Policy</a>{" "}and{" "}
         <a href="https://policies.google.com/terms">Terms of Service</a> apply.
       </footer>
     </div>

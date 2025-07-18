@@ -13,9 +13,7 @@ code {
 }
 
 
-/* Position reCAPTCHA badge unobtrusively while keeping it visible */
+/* reCAPTCHA badge set to invisible, branding text established in footer */
 .grecaptcha-badge {
-  z-index: 1000;
-  bottom: 16px !important;
-  right: 16px !important;
+  visibility: hidden !important;
 }
