@@ -27,7 +27,7 @@ function App() {
       backgroundImage: "url('/maximos1.png')",
       fontFamily: "'Lato', sans-serif",
       placeholder: "Ask a question to St. Maximos...",
-      backgroundOpacity: 1,
+      backgroundOpacity: 3,
     },
     ordinance: {
       label: "Brandon Ordinance",
