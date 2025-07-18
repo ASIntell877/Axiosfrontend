@@ -27,7 +27,7 @@ function App() {
   const clientConfig = {
     maximos: {
       label: "St. Maximos",
-      backgroundImage: "url('/maximos2.png')",
+      backgroundImage: "url('/maximos2.jpg')",
       fontFamily: "'Lato', sans‑serif",
       placeholder: "Ask a question to St. Maximos...",
       backgroundOpacity: 3,
@@ -260,8 +260,8 @@ function App() {
         }}
       >
         © 2025 Axiostrat Intelligence LLC. All rights reserved.<br></br>
-        This site is protected by reCAPTCHA and the Google ""
-        <a href="https://policies.google.com/privacy">Privacy Policy</a> "" and ""
+        This site is protected by reCAPTCHA and the Google 
+        <a href="https://policies.google.com/privacy">Privacy Policy</a>  and 
         <a href="https://policies.google.com/terms">Terms of Service</a> apply.
       </footer>
     </div>
