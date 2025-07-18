@@ -8,7 +8,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // toggle this to true if you ever want to show sources again
+  // toggle to true if you ever want sources back
   const showSources = false;
 
   const { executeRecaptcha } = useGoogleReCaptcha();
@@ -23,33 +23,33 @@ function App() {
     clientId = pathMatch ? pathMatch[1] : "maximos";
   }
 
-  // Client-specific configurations
+  // Client configs...
   const clientConfig = {
     maximos: {
       label: "St. Maximos",
       backgroundImage: "url('/maximos1.png')",
-      fontFamily: "'Lato', sans-serif",
+      fontFamily: "'Lato', sans‑serif",
       placeholder: "Ask a question to St. Maximos...",
       backgroundOpacity: 10,
     },
     ordinance: {
       label: "Brandon Ordinance",
       backgroundColor: "#003366",
-      fontFamily: "'Montserrat', sans-serif",
+      fontFamily: "'Montserrat', sans‑serif",
       placeholder: "Ask about Brandon Ordinance...",
       backgroundOpacity: 1,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
       backgroundColor: "#f9ca24",
-      fontFamily: "'Lato', sans-serif",
+      fontFamily: "'Lato', sans‑serif",
       placeholder: "How can we help you today?",
       backgroundOpacity: 1,
     },
     samuel: {
       label: "Samuel Kelly",
       backgroundImage: "url('/samuel1.jpg')",
-      fontFamily: "'Montserrat', sans-serif",
+      fontFamily: "'Montserrat', sans‑serif",
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
     },
@@ -57,11 +57,14 @@ function App() {
   const client = clientConfig[clientId] || clientConfig.maximos;
   const chatId = "demo-session-1";
 
-  // Ref & effect for auto‑scrolling
-  const messagesEndRef = useRef(null);
+  // **NEW**: ref to the scrollable container
+  const messagesContainerRef = useRef(null);
+
+  // Scroll *that* container to bottom on every messages change
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
     }
   }, [messages]);
 
@@ -81,13 +84,13 @@ function App() {
 
     setLoading(true);
     if (showSources) setSources([]);
-    setMessages((msgs) => [...msgs, { sender: "user", text: question }]);
+    setMessages((ms) => [...ms, { sender: "user", text: question }]);
     setQuestion("");
 
     try {
-      let recaptchaToken = "";
+      let token = "";
       if (executeRecaptcha) {
-        recaptchaToken = await executeRecaptcha("chat");
+        token = await executeRecaptcha("chat");
       }
 
       const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
@@ -97,18 +100,16 @@ function App() {
           chat_id: chatId,
           client_id: clientId,
           question,
-          recaptcha_token: recaptchaToken,
+          recaptcha_token: token,
         }),
       });
-      if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
+      if (!res.ok) throw new Error(res.statusText);
 
       const data = await res.json();
-      setMessages((msgs) => [...msgs, { sender: "bot", text: data.answer }]);
-      if (showSources) {
-        setSources(data.source_documents || []);
-      }
+      setMessages((ms) => [...ms, { sender: "bot", text: data.answer }]);
+      if (showSources) setSources(data.source_documents || []);
     } catch (err) {
-      console.error("❌ Fetch error:", err);
+      console.error(err);
       setError("Error connecting to server.");
     } finally {
       setLoading(false);
@@ -138,8 +139,9 @@ function App() {
     <div style={containerStyle}>
       <h2>Ask {client.label}</h2>
 
-      {/* Conversation */}
+      {/* Conversation (scrollable) */}
       <div
+        ref={messagesContainerRef}            {/* ← here */}
         style={{
           flex: 1,
           overflowY: "auto",
@@ -152,9 +154,9 @@ function App() {
           gap: "0.5rem",
         }}
       >
-        {messages.map((msg, idx) => (
+        {messages.map((msg, i) => (
           <div
-            key={idx}
+            key={i}
             style={{
               display: "flex",
               justifyContent:
@@ -175,14 +177,10 @@ function App() {
             </div>
           </div>
         ))}
-
-        {/* Auto‑scroll anchor */}
-        <div ref={messagesEndRef} />
-
         {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
       </div>
 
-      {/* Input area */}
+      {/* Input */}
       <div
         style={{
           display: "flex",
@@ -204,7 +202,7 @@ function App() {
             padding: "0.5rem 1rem",
             fontFamily: client.fontFamily,
             borderRadius: "20px",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            backgroundColor: "rgba(255,255,255,0.8)",
           }}
           disabled={loading}
         />
@@ -220,6 +218,7 @@ function App() {
             padding: 0,
           }}
         >
+          {/* svg arrow */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"
