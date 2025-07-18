@@ -33,10 +33,10 @@ function App() {
       backgroundOpacity: 3,
     },
     ordinance: {
-      label: "Brandon Ordinance",
-      backgroundColor: "#003366",
+      label: "Anytown USA Ordinance",
+      backgroundImage: "url('/midwestsummer.jpg')",
       fontFamily: "'Montserrat', sans‑serif",
-      placeholder: "Ask about Brandon Ordinance...",
+      placeholder: "Ask about Anytown USA Ordinance...",
       backgroundOpacity: 3,
     },
     marketingasst: {
