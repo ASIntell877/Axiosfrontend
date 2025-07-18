@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // toggle this to true if you ever want sources back:
+  // toggle this to true if you ever want to show sources again
   const showSources = false;
 
   const { executeRecaptcha } = useGoogleReCaptcha();
@@ -57,6 +57,14 @@ function App() {
   const client = clientConfig[clientId] || clientConfig.maximos;
   const chatId = "demo-session-1";
 
+  // Ref & effect for auto‑scrolling
+  const messagesEndRef = useRef(null);
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -80,7 +88,6 @@ function App() {
       let recaptchaToken = "";
       if (executeRecaptcha) {
         recaptchaToken = await executeRecaptcha("chat");
-        console.log("🔐 reCAPTCHA token:", recaptchaToken);
       }
 
       const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
@@ -168,6 +175,10 @@ function App() {
             </div>
           </div>
         ))}
+
+        {/* Auto‑scroll anchor */}
+        <div ref={messagesEndRef} />
+
         {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
       </div>
 
@@ -228,7 +239,7 @@ function App() {
         </p>
       )}
 
-      {/* Sources (only if showSources = true) */}
+      {/* Sources */}
       {showSources && sources.length > 0 && (
         <div style={{ marginTop: "1rem" }}>
           <strong>Sources:</strong>
