@@ -119,7 +119,7 @@ function App() {
   const containerStyle = {
     display: "flex",
     flexDirection: "column",
-    height: "100vh",
+    height: "80vh",
     padding: "2rem",
     fontFamily: client.fontFamily,
     maxWidth: 700,
