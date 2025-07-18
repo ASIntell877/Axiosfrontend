@@ -53,7 +53,7 @@ function App() {
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
     },
-    pastorate: {
+    prairiepastorate: {
       label: "Prairie Catholic Pastorate",
       backgroundImage: "url('/church.jpg')",
       fontFamily: "'Lato', sans‑serif",
