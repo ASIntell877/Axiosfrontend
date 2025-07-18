@@ -110,6 +110,7 @@ function App() {
     }
   };
   const containerStyle = {
+    display: "flex",
     padding: "2rem",
     fontFamily: client.fontFamily,
     maxWidth: 700,
@@ -251,7 +252,7 @@ function App() {
       opacity: 0.8,
      }}
    >
-     Built by Axiostrat Intelligence 2025
+     © 2025 Axiostrat Intelligence LLC. All rights reserved.
    </footer>
   </div>
     );
