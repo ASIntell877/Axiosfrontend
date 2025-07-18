@@ -53,6 +53,13 @@ function App() {
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
     },
+    pastorate: {
+      label: "Prairie Catholic Pastorate",
+      backgroundImage: "url('/church.jpg')",
+      fontFamily: "'Lato', sans‑serif",
+      placeholder: "How can I help you?",
+      backgroundOpacity: 1,
+    },
   };
   const client = clientConfig[clientId] || clientConfig.maximos;
   const chatId = "demo-session-1";
