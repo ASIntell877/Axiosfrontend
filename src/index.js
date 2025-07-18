@@ -3,11 +3,16 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+
+const SITE_KEY = '6Ldn_H4rAAAAAMTuKBGKbUyOfq9EOBdLWMqJ4gh4';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
+      <App />
+    </GoogleReCaptchaProvider>
   </React.StrictMode>
 );
 

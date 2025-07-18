@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+const SITE_KEY = 'test-key';
+
+test('renders header', () => {
+  render(
+    <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
+      <App />
+    </GoogleReCaptchaProvider>
+  );
+  const heading = screen.getByText(/Ask/i);
+  expect(heading).toBeInTheDocument();
 });

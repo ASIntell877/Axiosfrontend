@@ -11,3 +11,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/* Position reCAPTCHA badge unobtrusively while keeping it visible */
+.grecaptcha-badge {
+  z-index: 1000;
+  bottom: 16px !important;
+  right: 16px !important;
+}

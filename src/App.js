@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
+import React, { useState } from "react";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 function App() {
   const [question, setQuestion] = useState("");
@@ -8,9 +8,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const recaptchaRef = useRef();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const BACKEND_URL = "https://sdcl-backend.onrender.com";
-  const SITE_KEY = "6Ldn_H4rAAAAAMTuKBGKbUyOfq9EOBdLWMqJ4gh4"; // 🔁 Replace with your real site key
 
   // Detect clientId from the URL
   let clientId;
@@ -26,26 +25,30 @@ function App() {
     maximos: {
       label: "St. Maximos",
       backgroundImage: "url('/maximos1.png')",
-      fontFamily: "'Poppins', sans-serif",
+      fontFamily: "'Lato', sans-serif",
       placeholder: "Ask a question to St. Maximos...",
+      backgroundOpacity: 1,
     },
     ordinance: {
       label: "Brandon Ordinance",
       backgroundColor: "#003366",
       fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask about Brandon Ordinance...",
+      backgroundOpacity: 1,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
       backgroundColor: "#f9ca24",
       fontFamily: "'Lato', sans-serif",
       placeholder: "How can we help you today?",
+      backgroundOpacity: 1,
     },
     samuel: {
       label: "Samuel Kelly",
       backgroundImage: "url('/samuel1.jpg')",
       fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask Samuel Kelly anything...",
+      backgroundOpacity: 1,
     },
   };
 
@@ -74,11 +77,11 @@ function App() {
 
     try {
       // Get new token for each request
-      const recaptchaToken = await recaptchaRef.current.executeAsync();
-      console.log("🔐 reCAPTCHA token:", recaptchaToken);
-
-      // Immediately reset for the next attempt
-      recaptchaRef.current.reset();
+      let recaptchaToken = "";
+      if (executeRecaptcha) {
+        recaptchaToken = await executeRecaptcha("chat");
+        console.log("🔐 reCAPTCHA token:", recaptchaToken);
+      }
 
       // Now send to backend right away
       const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
@@ -111,9 +114,9 @@ function App() {
     fontFamily: client.fontFamily,
     maxWidth: 700,
     margin: "auto",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column"
+    height: "100vh",
+    flexDirection: "column",
+    opacity: client.backgroundOpacity,
   };
 
   if (client.backgroundImage) {
@@ -134,7 +137,7 @@ function App() {
             flex: 1,
             overflowY: "auto",
             padding: "1rem",
-            backgroundColor: "#f4f4f9",
+            backgroundColor: "rgba(244, 244, 249, 0.8)",
             borderRadius: "8px",
             marginBottom: "1rem",
             display: "flex",
@@ -192,6 +195,7 @@ function App() {
             padding: "0.5rem 1rem",
             fontFamily: client.fontFamily,
             borderRadius: "20px",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
           }}
           disabled={loading}
         />
@@ -218,14 +222,6 @@ function App() {
         </svg>
         </button>
       </div>
-
-      {/* Invisible reCAPTCHA */}
-      <ReCAPTCHA
-        ref={recaptchaRef}
-        size="invisible"
-        sitekey={SITE_KEY}
-        badge="bottomright"
-      />
 
       {/* Display error if any */}
       {error && (
