@@ -48,7 +48,7 @@ function App() {
     },
     samuel: {
       label: "Samuel Kelly",
-      backgroundImage: "url('/samuel1.jpg')",
+      backgroundImage: "url('/samuel2.jpg')",
       fontFamily: "'Montserrat', sans‑serif",
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
