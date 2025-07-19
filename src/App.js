@@ -14,6 +14,15 @@ function App() {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const BACKEND_URL = "https://sdcl-backend.onrender.com";
 
+  // generate chatid - load stable session ID only once
+  const [chatId] = useState(() => {
+  const existing = localStorage.getItem("chatId");
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  localStorage.setItem("chatId", id);
+  return id;
+});
+
   // Detect clientId from the URL
   let clientId;
   const urlParams = new URLSearchParams(window.location.search);
@@ -62,7 +71,28 @@ function App() {
     },
   };
   const client = clientConfig[clientId] || clientConfig.maximos;
-  const chatId = "demo-session-1";
+
+   // === NEW: Hydrate history from backend on load ===
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const res = await fetch(
+          `${BACKEND_URL}/history?client_id=${clientId}&chat_id=${chatId}`
+        );
+        if (res.ok) {
+          const { history } = await res.json();
+          // history is an array of { role: "user"|"assistant", text: "…" }
+          setMessages(history.map(m => ({
+            sender: m.role === "assistant" ? "bot" : "user",
+            text: m.text
+          })));
+        }
+      } catch (err) {
+        console.error("Failed to load chat history:", err);
+      }
+    }
+    loadHistory();
+  }, [clientId, chatId]);
 
   // **NEW**: ref to the scrollable container
   const messagesContainerRef = useRef(null);
