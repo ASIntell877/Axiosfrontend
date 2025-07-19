@@ -54,7 +54,7 @@ function App() {
       backgroundOpacity: 1,
     },
     prairiepastorate: {
-      label: "Prairie Catholic Pastorate",
+      label: "Prairie Catholic Pastorate Assistant",
       backgroundImage: "url('/church.jpg')",
       fontFamily: "'Lato', sans‑serif",
       placeholder: "How can I help you?",
