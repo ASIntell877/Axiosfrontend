@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
+// Fallback UUID generator for environments without crypto.randomUUID
+function generateUUID() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const randomPart = Math.random().toString(16).slice(2);
+  const timePart = Date.now().toString(16);
+  return randomPart + timePart;
+}
+
 function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
@@ -16,12 +26,12 @@ function App() {
 
   // generate chatid - load stable session ID only once
   const [chatId] = useState(() => {
-  const existing = localStorage.getItem("chatId");
-  if (existing) return existing;
-  const id = crypto.randomUUID();
-  localStorage.setItem("chatId", id);
-  return id;
-});
+    const existing = localStorage.getItem("chatId");
+    if (existing) return existing;
+    const id = generateUUID();
+    localStorage.setItem("chatId", id);
+    return id;
+  });
 
   // Detect clientId from the URL
   let clientId;
@@ -37,35 +47,35 @@ function App() {
     maximos: {
       label: "St. Maximos the Confessor",
       backgroundImage: "url('/maximos2.jpg')",
-      fontFamily: "'Lato', sans‑serif",
+      fontFamily: "'Lato', sans-serif",
       placeholder: "Seek counsel from St. Maximos...",
       backgroundOpacity: 3,
     },
     ordinance: {
       label: "Anytown USA Ordinance",
       backgroundImage: "url('/midwestsummer.jpg')",
-      fontFamily: "'Montserrat', sans‑serif",
+      fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask about Anytown USA Ordinance...",
       backgroundOpacity: 3,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
       backgroundColor: "#f9ca24",
-      fontFamily: "'Lato', sans‑serif",
+      fontFamily: "'Lato', sans-serif",
       placeholder: "How can we help you today?",
       backgroundOpacity: 1,
     },
     samuel: {
       label: "Samuel Kelly - A Real 18th Century Sailor",
       backgroundImage: "url('/samuel2.jpg')",
-      fontFamily: "'Montserrat', sans‑serif",
+      fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
     },
     prairiepastorate: {
       label: "Prairie Catholic Pastorate Assistant",
       backgroundImage: "url('/church.jpg')",
-      fontFamily: "'Lato', sans‑serif",
+      fontFamily: "'Lato', sans-serif",
       placeholder: "How can I help you?",
       backgroundOpacity: 1,
     },
