@@ -40,7 +40,7 @@ function App() {
   clientId = urlParams.get("client");
   if (!clientId) {
     const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
-    clientId = pathMatch ? pathMatch[1] : "maximos";
+    clientId = pathMatch ? pathMatch[1] : "prairiepastorate";
   }
 
   // Client configs...
@@ -81,7 +81,7 @@ function App() {
       backgroundOpacity: 1,
     },
   };
-  const client = clientConfig[clientId] || clientConfig.maximos;
+  const client = clientConfig[clientId] || clientConfig.prairiepastorate;
 
    // === NEW: Hydrate history from backend on load ===
   useEffect(() => {
