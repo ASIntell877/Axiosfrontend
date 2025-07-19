@@ -217,7 +217,19 @@ function App() {
               color: msg.sender === "user" ? "#ffffff" : "#000000",
             }}>
               {msg.sender === "bot" && clientId === "prairiepastorate" ? (
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    a: ({node, ...props}) => (
+                      <a
+                        {...props}
+                        target="_blank"
+                        rel="noopener noreferrer"  // prevents tab‑napping
+                      />
+                    )
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
               ) : (
                 <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
               )}
