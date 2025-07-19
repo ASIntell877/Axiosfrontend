@@ -47,7 +47,7 @@ function App() {
       backgroundOpacity: 1,
     },
     samuel: {
-      label: "Samuel Kelly",
+      label: "Samuel Kelly - A Real 18th Century Sailor",
       backgroundImage: "url('/samuel2.jpg')",
       fontFamily: "'Montserrat', sans‑serif",
       placeholder: "Ask Samuel Kelly anything...",
