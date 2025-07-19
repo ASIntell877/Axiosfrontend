@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import ReactMarkdown from "react-markdown"
 
 // Fallback UUID generator for environments without crypto.randomUUID
 function generateUUID() {
@@ -202,27 +203,28 @@ function App() {
       >
         {messages.map((msg, i) => (
           <div
-            key={i}
+             key={i}
             style={{
               display: "flex",
-              justifyContent:
-                msg.sender === "user" ? "flex-end" : "flex-start",
+              justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
             }}
           >
-            <div
-              style={{
-                maxWidth: "80%",
-                padding: "0.5rem 1rem",
-                borderRadius: "20px",
-                backgroundColor:
-                  msg.sender === "user" ? "#007BFF" : "#ffffff",
-                color: msg.sender === "user" ? "#ffffff" : "#000000",
-              }}
-            >
-              {msg.text}
+            <div style={{
+              maxWidth: "80%",
+              padding: "0.5rem 1rem",
+              borderRadius: "20px",
+              backgroundColor: msg.sender === "user" ? "#007BFF" : "#ffffff",
+              color: msg.sender === "user" ? "#ffffff" : "#000000",
+            }}>
+              {msg.sender === "bot" && clientId === "prairiepastorate" ? (
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              ) : (
+                <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
+              )}
             </div>
           </div>
         ))}
+
         {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
       </div>
 
