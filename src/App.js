@@ -34,14 +34,34 @@ function App() {
     return id;
   });
 
-  // Detect clientId from the URL
-  let clientId;
-  const urlParams = new URLSearchParams(window.location.search);
-  clientId = urlParams.get("client");
-  if (!clientId) {
-    const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
-    clientId = pathMatch ? pathMatch[1] : "prairiepastorate";
+
+// Detect clientId from query param, URL path, or subdomain
+let clientId;
+
+// 1. Try URL param (?client=samuel)
+const urlParams = new URLSearchParams(window.location.search);
+clientId = urlParams.get("client");
+
+// 2. Try first path segment (e.g., /samuel)
+if (!clientId) {
+  const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
+  clientId = pathMatch ? pathMatch[1] : null;
+}
+
+// 3. Try subdomain (e.g., samuel.axiostratintelligence.com)
+if (!clientId) {
+  const hostname = window.location.hostname;
+  const parts = hostname.split(".");
+  if (parts.length > 2) {
+    clientId = parts[0];
   }
+}
+
+// 4. Fallback default
+if (!clientId) {
+  clientId = "prairiepastorate";
+}
+
 
   // Client configs...
   const clientConfig = {
