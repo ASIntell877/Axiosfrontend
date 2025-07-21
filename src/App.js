@@ -53,7 +53,7 @@ if (!clientId) {
   const hostname = window.location.hostname;
   const parts = hostname.split(".");
   if (parts.length > 2) {
-    clientId = parts[0];
+    clientId = parts[0].toLowerCase() === "www" ? parts[1] : parts[0];
   }
 }
 
