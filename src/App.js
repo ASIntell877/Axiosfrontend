@@ -203,6 +203,14 @@ if (!clientId) {
       : client.backgroundColor && { backgroundColor: client.backgroundColor }),
   };
 
+  // ──────────────── 1. Helper functions ────────────────
+  // Call isImageUrl(msg.text) or isVideoUrl(msg.text) to detect media
+  const isImageUrl = (url) =>
+    /\.(jpe?g|png|gif|webp)$/i.test(url.trim());
+
+  const isVideoUrl = (url) =>
+    /\.(mp4|webm|ogg)$/i.test(url.trim());
+
   return (
     <div style={containerStyle}>
       <h2>{client.label}</h2>
@@ -256,7 +264,64 @@ if (!clientId) {
             </div>
           </div>
         ))}
+        {messages.map((msg, i) => {
+          const content = msg.text.trim();
+          const isImage = isImageUrl(content);
+          const isVideo = isVideoUrl(content);
 
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: "80%",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "20px",
+                  backgroundColor: msg.sender === "user" ? "#007BFF" : "#ffffff",
+                  color: msg.sender === "user" ? "#ffffff" : "#000000",
+                }}
+              >
+                {msg.sender === "bot" ? (
+                  // ───────── Media rendering branch ─────────
+                  isImage ? (
+                    <img
+                      src={content}
+                      alt=""
+                      style={{ maxWidth: "100%", borderRadius: "8px" }}
+                    />
+                  ) : isVideo ? (
+                    <video
+                      controls
+                      src={content}
+                      style={{
+                        width: "100%",
+                        maxWidth: "600px",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a {...props} target="_blank" rel="noopener noreferrer" />
+                        ),
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
+                  )
+                ) : (
+                  <div style={{ whiteSpace: "pre-wrap" }}>{content}</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
         {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
       </div>
 
