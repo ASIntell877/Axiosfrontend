@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import ReactMarkdown from "react-markdown"
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
 // Fallback UUID generator for environments without crypto.randomUUID
 function generateUUID() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -23,17 +25,23 @@ function App() {
   const showSources = false;
 
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const BACKEND_URL = "https://sdcl-backend.onrender.com";
 
-  // generate chatid - load stable session ID only once
-  const [chatId] = useState(() => {
-    const existing = localStorage.getItem("chatId");
-    if (existing) return existing;
-    const id = generateUUID();
-    localStorage.setItem("chatId", id);
-    return id;
-  });
+  // generate chatid - load stable session ID - clear chat on tab close
+  const [chatId, setChatId] = useState(() => {
+  const existing = sessionStorage.getItem("chatId");
+  if (existing) return existing;
+  const id = generateUUID();
+  sessionStorage.setItem("chatId", id);
+  return id;
+});
 
+const clearChat = () => {
+  sessionStorage.removeItem("chatId");
+  const newId = generateUUID();
+  sessionStorage.setItem("chatId", newId);
+  setChatId(newId);
+  setMessages([]);
+}
 
 // Detect clientId from query param, URL path, or subdomain
 let clientId;
@@ -103,7 +111,7 @@ if (!clientId) {
   };
   const client = clientConfig[clientId] || clientConfig.prairiepastorate;
 
-   // === NEW: Hydrate history from backend on load ===
+   // === Hydrate history from backend on load ===
   useEffect(() => {
     async function loadHistory() {
       try {
@@ -125,6 +133,8 @@ if (!clientId) {
     loadHistory();
   }, [clientId, chatId]);
 
+
+  
   // **NEW**: ref to the scrollable container
   const messagesContainerRef = useRef(null);
 
@@ -214,6 +224,12 @@ if (!clientId) {
   return (
     <div style={containerStyle}>
       <h2>{client.label}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>{client.label}</h2>
+        <button onClick={clearChat} style={{ background: "none", border: "none", color: "#007BFF", cursor: "pointer" }}>
+        Clear Chat
+      </button>
+      </div>
 
       {/* Conversation (scrollable) */}
       
