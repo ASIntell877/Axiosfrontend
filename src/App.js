@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import ReactMarkdown from "react-markdown"
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
+// Default to current origin if no environment variable is provided
+const BACKEND_URL = envBackendUrl || window.location.origin;
 
 // Fallback UUID generator for environments without crypto.randomUUID
 function generateUUID() {
@@ -20,9 +22,19 @@ function App() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [configWarning, setConfigWarning] = useState(null)
 
   // toggle to true if you ever want sources back
   const showSources = false;
+
+  useEffect(() => {
+    if (!envBackendUrl) {
+      setConfigWarning(
+        "REACT_APP_BACKEND_URL is not set. Using current origin."
+      );
+    }
+  }, []);
+
 
   const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -397,6 +409,14 @@ if (!clientId) {
           <strong>{error}</strong>
         </p>
       )}
+
+      {/* Configuration warning */}
+      {configWarning && (
+        <p style={{ color: "orange", marginTop: "1rem" }}>
+          <strong>{configWarning}</strong>
+        </p>
+      )}
+
 
       {/* Sources */}
       {showSources && sources.length > 0 && (
