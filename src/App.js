@@ -256,41 +256,7 @@ if (!clientId) {
           gap: "0.5rem",
         }}
       >
-        {messages.map((msg, i) => (
-          <div
-             key={i}
-            style={{
-              display: "flex",
-              justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
-            }}
-          >
-            <div style={{
-              maxWidth: "80%",
-              padding: "0.5rem 1rem",
-              borderRadius: "20px",
-              backgroundColor: msg.sender === "user" ? "#007BFF" : "#ffffff",
-              color: msg.sender === "user" ? "#ffffff" : "#000000",
-            }}>
-              {msg.sender === "bot" && clientId === "prairiepastorate" ? (
-                <ReactMarkdown
-                  components={{
-                    a: ({node, ...props}) => (
-                      <a
-                        {...props}
-                        target="_blank"
-                        rel="noopener noreferrer"  // prevents tab‑napping
-                      />
-                    )
-                  }}
-                >
-                  {msg.text}
-                </ReactMarkdown>
-              ) : (
-                <div style={{ whiteSpace: "pre-wrap" }}>{msg.text}</div>
-              )}
-            </div>
-          </div>
-        ))}
+        
         {messages.map((msg, i) => {
           const content = msg.text.trim();
           const isImage = isImageUrl(content);
