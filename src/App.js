@@ -223,7 +223,6 @@ if (!clientId) {
 
   return (
     <div style={containerStyle}>
-      <h2>{client.label}</h2>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2>{client.label}</h2>
         <button onClick={clearChat} style={{ background: "none", border: "none", color: "#007BFF", cursor: "pointer" }}>
