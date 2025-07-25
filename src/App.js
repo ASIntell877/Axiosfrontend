@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import clientConfig from "./src/client_config";
 import ReactMarkdown from "react-markdown"
 
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -82,45 +83,6 @@ if (!clientId) {
   clientId = "prairiepastorate";
 }
 
-
-  // Client configs...
-  const clientConfig = {
-    maximos: {
-      label: "St. Maximos the Confessor",
-      backgroundImage: "url('/maximos2.jpg')",
-      fontFamily: "'Lato', sans-serif",
-      placeholder: "Seek counsel from St. Maximos...",
-      backgroundOpacity: 3,
-    },
-    ordinance: {
-      label: "Anytown USA Ordinance",
-      backgroundImage: "url('/midwestsummer.jpg')",
-      fontFamily: "'Montserrat', sans-serif",
-      placeholder: "Ask about Anytown USA Ordinance...",
-      backgroundOpacity: 3,
-    },
-    marketingasst: {
-      label: "Parish Marketing Assistant",
-      backgroundColor: "#f9ca24",
-      fontFamily: "'Lato', sans-serif",
-      placeholder: "How can we help you today?",
-      backgroundOpacity: 1,
-    },
-    samuel: {
-      label: "Samuel Kelly - A Real 18th Century Sailor",
-      backgroundImage: "url('/samuel2.jpg')",
-      fontFamily: "'Montserrat', sans-serif",
-      placeholder: "Ask Samuel Kelly anything...",
-      backgroundOpacity: 1,
-    },
-    prairiepastorate: {
-      label: "Prairie Catholic Pastorate Assistant",
-      backgroundImage: "url('/church.jpg')",
-      fontFamily: "'Lato', sans-serif",
-      placeholder: "How can I help you?",
-      backgroundOpacity: 1,
-    },
-  };
   const client = clientConfig[clientId] || clientConfig.prairiepastorate;
 
    // === Hydrate history from backend on load ===
