@@ -157,6 +157,13 @@ if (!clientId) {
     }
   }, []);
 
+  // Keep focus on the textarea once loading finishes
+  useEffect(() => {
+    if (!loading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [loading]);
+
   // Scroll *that* container to bottom on every messages change
   useEffect(() => {
     const el = messagesContainerRef.current;
