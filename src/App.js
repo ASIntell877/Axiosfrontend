@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import clientConfig from "./src/client_config";
+import clientConfig from "./client_config";
 import ReactMarkdown from "react-markdown"
 
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;

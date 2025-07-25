@@ -36,4 +36,4 @@
       backgroundOpacity: 1,
     },
   };
-  const client = clientConfig[clientId] || clientConfig.prairiepastorate;
+  export default clientConfig;
