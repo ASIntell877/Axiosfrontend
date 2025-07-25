@@ -1,8 +1,12 @@
 {
   "rewrites": [
+    { "source": "/", "has": [{ "type": "host", "value": "prairiepastorate.axiostratintelligence.com" }], "destination": "/?client=prairiepastorate" },
+    { "source": "/", "has": [{ "type": "host", "value": "samuel.axiostratintelligence.com" }], "destination": "/?client=samuel" },
+    { "source": "/", "has": [{ "type": "host", "value": "maximos.axiostratintelligence.com" }], "destination": "/?client=maximos" },
+    { "source": "/", "has": [{ "type": "host", "value": "ordinance.axiostratintelligence.com" }], "destination": "/?client=ordiance" },
     { "source": "/maximos", "destination": "/?client=maximos" },
-    { "source": "/ordinance", "destination": "/?client=ordinance" }
-      ],
+   { "source": "/ordinance", "destination": "/?client=ordinance" }
+ ],
   "headers": [
     {
       "source": "/(.*)",
