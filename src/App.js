@@ -149,6 +149,13 @@ if (!clientId) {
   
   // **NEW**: ref to the scrollable container
   const messagesContainerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   // Scroll *that* container to bottom on every messages change
   useEffect(() => {
@@ -203,6 +210,9 @@ if (!clientId) {
       setError("Error connecting to server.");
     } finally {
       setLoading(false);
+       if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   };
 
@@ -328,6 +338,7 @@ if (!clientId) {
         }}
       >
         <textarea
+          ref={inputRef}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={handleKeyDown}
