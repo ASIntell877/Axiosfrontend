@@ -216,7 +216,7 @@ if (!clientId) {
   return (
     <div style={containerStyle}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>{client.label}</h2>
+        <h2 style={{ color: client.labelColor || "inherit" }}>{client.label}</h2>
         <button onClick={clearChat} style={{ background: "none", border: "none", color: "#007BFF", cursor: "pointer" }}>
         Clear Chat
       </button>
