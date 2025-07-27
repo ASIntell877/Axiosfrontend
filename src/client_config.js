@@ -6,6 +6,7 @@
       fontFamily: "'Lato', sans-serif",
       placeholder: "Seek counsel from St. Maximos...",
       backgroundOpacity: 3,
+      showSources: false,
     },
     ordinance: {
       label: "Anytown USA Ordinance",
@@ -13,6 +14,7 @@
       fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask about Anytown USA Ordinance...",
       backgroundOpacity: 3,
+      showSources: false,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
@@ -20,6 +22,7 @@
       fontFamily: "'Lato', sans-serif",
       placeholder: "How can we help you today?",
       backgroundOpacity: 1,
+      showSources: false,
     },
     samuel: {
       label: "Samuel Kelly - A Real 18th Century Sailor",
@@ -27,6 +30,7 @@
       fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
+      showSources: false,
     },
     prairiepastorate: {
       label: "Prairie Catholic Pastorate Assistant",
@@ -34,6 +38,7 @@
       fontFamily: "'Lato', sans-serif",
       placeholder: "How can I help you?",
       backgroundOpacity: 1,
+      showSources: false,
     },
   };
   export default clientConfig;

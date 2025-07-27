@@ -25,8 +25,6 @@ function App() {
   const [error, setError] = useState(null);
   const [configWarning, setConfigWarning] = useState(null)
 
-  // toggle to true if you ever want sources back
-  const showSources = false;
 
   useEffect(() => {
     if (!envBackendUrl) {
@@ -82,8 +80,11 @@ if (!clientId) {
 if (!clientId) {
   clientId = "prairiepastorate";
 }
-
+  // Set constant for client configurations as client
   const client = clientConfig[clientId] || clientConfig.prairiepastorate;
+
+  // Show sources for client- get from client_config settings
+  const showSources = Boolean(client.showSources);
 
    // === Hydrate history from backend on load ===
   useEffect(() => {
