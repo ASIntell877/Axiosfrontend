@@ -14,7 +14,7 @@
       fontFamily: "'Montserrat', sans-serif",
       placeholder: "Ask about Anytown USA Ordinance...",
       backgroundOpacity: 3,
-      showSources: true,
+      showSources: false,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
