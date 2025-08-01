@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown"
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
 // Default to current origin if no environment variable is provided
 const BACKEND_URL = envBackendUrl || window.location.origin;
+const REACT_API_KEY = process.env.REACT_APP_API_KEY;
 
 // Fallback UUID generator for environments without crypto.randomUUID
 function generateUUID() {
@@ -91,7 +92,8 @@ if (!clientId) {
     async function loadHistory() {
       try {
         const res = await fetch(
-          `${BACKEND_URL}/history?client_id=${clientId}&chat_id=${chatId}`
+          `${BACKEND_URL}/history?client_id=${clientId}&chat_id=${chatId}`,
+          { headers: { 'x-api-key': REACT_API_KEY } }
         );
         if (res.ok) {
           const { history } = await res.json();
