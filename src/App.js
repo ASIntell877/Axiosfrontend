@@ -311,7 +311,7 @@ if (!clientId) {
       >
         <textarea
           ref={inputRef}
-          value={question}
+          value={userMessage}
           onChange={(e) => setUserMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={2}
