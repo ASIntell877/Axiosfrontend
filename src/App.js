@@ -19,7 +19,7 @@ function generateUUID() {
 }
 
 function App() {
-  const [question, setQuestion] = useState("");
+  const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -146,15 +146,15 @@ if (!clientId) {
 
   const handleSubmit = async () => {
     setError(null);
-    if (!question.trim()) {
+    if (!userMessage.trim()) {
       setError("Please enter a question.");
       return;
     }
 
     setLoading(true);
     if (showSources) setSources([]);
-    setMessages((ms) => [...ms, { sender: "user", text: question }]);
-    setQuestion("");
+    setMessages((ms) => [...ms, { sender: "user", text: userMessage }]);
+    setUserMessage("");
 
     try {
       let token = "";
@@ -168,7 +168,7 @@ if (!clientId) {
         body: JSON.stringify({
           chat_id: chatId,
           client_id: clientId,
-          question,
+          user_message: userMessage,
           recaptcha_token: token,
         }),
       });
@@ -312,7 +312,7 @@ if (!clientId) {
         <textarea
           ref={inputRef}
           value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          onChange={(e) => setUserMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={2}
           placeholder={client.placeholder}
