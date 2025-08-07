@@ -8,6 +8,7 @@
       placeholder: "Seek counsel from St. Maximos...",
       backgroundOpacity: 3,
       showSources: false,
+      showFeedback: false,
     },
     ordinance: {
       label: "Anytown USA Ordinance",
@@ -17,6 +18,7 @@
       placeholder: "Ask about Anytown USA Ordinance...",
       backgroundOpacity: 3,
       showSources: false,
+      showFeedback: true,
     },
     marketingasst: {
       label: "Parish Marketing Assistant",
@@ -26,6 +28,7 @@
       placeholder: "How can we help you today?",
       backgroundOpacity: 1,
       showSources: false,
+      showFeedback: false,
     },
     samuel: {
       label: "Samuel Kelly - A Real 18th Century Sailor",
@@ -35,6 +38,7 @@
       placeholder: "Ask Samuel Kelly anything...",
       backgroundOpacity: 1,
       showSources: false,
+      showFeedback: false,
     },
     prairiepastorate: {
       label: "Prairie Catholic Pastorate Assistant",
@@ -44,6 +48,7 @@
       placeholder: "How can I help you?",
       backgroundOpacity: 1,
       showSources: false,
+      showFeedback: true,
     },
   };
   export default clientConfig;

@@ -97,6 +97,7 @@ if (!clientId) {
 
   // Show sources for client- get from client_config settings
   const showSources = Boolean(client.showSources);
+  const showFeedback = client.showFeedback ?? false;
 
    // === Hydrate history from backend on load ===
   useEffect(() => {
