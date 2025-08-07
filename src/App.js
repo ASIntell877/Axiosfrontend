@@ -22,6 +22,7 @@ function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [sources, setSources] = useState([]);
+  const [votes, setVotes] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [configWarning, setConfigWarning] = useState(null)
@@ -47,13 +48,23 @@ function App() {
   return id;
 });
 
-const clearChat = () => {
-  sessionStorage.removeItem("chatId");
-  const newId = generateUUID();
-  sessionStorage.setItem("chatId", newId);
-  setChatId(newId);
-  setMessages([]);
-}
+  // Persistent user identifier stored in localStorage
+  const [userId] = useState(() => {
+    const existing = localStorage.getItem("userId");
+    if (existing) return existing;
+    const id = generateUUID();
+    localStorage.setItem("userId", id);
+    return id;
+  });
+
+  const clearChat = () => {
+    sessionStorage.removeItem("chatId");
+    const newId = generateUUID();
+    sessionStorage.setItem("chatId", newId);
+    setChatId(newId);
+    setMessages([]);
+    setVotes({});
+  }
 
 // Detect clientId from query param, URL path, or subdomain
 let clientId;
@@ -97,11 +108,14 @@ if (!clientId) {
         );
         if (res.ok) {
           const { history } = await res.json();
-          // history is an array of { role: "user"|"assistant", text: "…" }
-          setMessages(history.map(m => ({
-            sender: m.role === "assistant" ? "bot" : "user",
-            text: m.text
-          })));
+          // history is an array of { role: "user"|"assistant", text: "…", message_id: "..." }
+          setMessages(
+            history.map((m) => ({
+              sender: m.role === "assistant" ? "bot" : "user",
+              text: m.text,
+              message_id: m.message_id,
+            }))
+          );
         }
       } catch (err) {
         console.error("Failed to load chat history:", err);
@@ -153,7 +167,11 @@ if (!clientId) {
 
     setLoading(true);
     if (showSources) setSources([]);
-    setMessages((ms) => [...ms, { sender: "user", text: question }]);
+    // Add user's message with placeholder for message_id
+    setMessages((ms) => [
+      ...ms,
+      { sender: "user", text: question, message_id: null },
+    ]);
     setQuestion("");
 
     try {
@@ -170,12 +188,35 @@ if (!clientId) {
           client_id: clientId,
           question,
           recaptcha_token: token,
+          user_id: userId,
         }),
       });
       if (!res.ok) throw new Error(res.statusText);
 
       const data = await res.json();
-      setMessages((ms) => [...ms, { sender: "bot", text: data.answer }]);
+
+      setMessages((ms) => {
+        const updated = [...ms];
+        const lastIdx = updated.length - 1;
+        // Update the last user message with its message_id if provided
+        if (
+          lastIdx >= 0 &&
+          updated[lastIdx].sender === "user" &&
+          data.user_message_id
+        ) {
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            message_id: data.user_message_id,
+          };
+        }
+        // Append assistant response with message_id
+        updated.push({
+          sender: "bot",
+          text: data.answer,
+          message_id: data.message_id,
+        });
+        return updated;
+      });
       if (showSources) setSources(data.source_documents || []);
     } catch (err) {
       console.error(err);
@@ -187,6 +228,11 @@ if (!clientId) {
       }
     }
   };
+
+    const handleVote = (index, value) => {
+    setVotes((prev) => ({ ...prev, [index]: value }));
+  };
+
 
   const containerStyle = {
     display: "flex",
@@ -246,7 +292,7 @@ if (!clientId) {
 
           return (
             <div
-              key={i}
+              key={msg.message_id || i}
               style={{
                 display: "flex",
                 justifyContent: msg.sender === "user" ? "flex-end" : "flex-start",
@@ -292,6 +338,58 @@ if (!clientId) {
                   )
                 ) : (
                   <div style={{ whiteSpace: "pre-wrap" }}>{content}</div>
+                )}
+                
+                {msg.sender === "bot" && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: "0.25rem",
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    <button
+                      onClick={() => handleVote(i, "up")}
+                      disabled={Boolean(votes[i])}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: votes[i] ? "not-allowed" : "pointer",
+                        color: votes[i] === "up" ? "#007BFF" : "#888",
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 320 512"
+                        height="16"
+                        width="16"
+                        fill="currentColor"
+                      >
+                        <path d="M104 0H24C10.7 0 0 10.7 0 24V312c0 13.3 10.7 24 24 24h80c13.3 0 24-10.7 24-24V24c0-13.3-10.7-24-24-24zm216 240c0-17.7-14.3-32-32-32H202.6l9.7-44.3 1-5.2c0-5.9-2.3-11.6-6.6-15.8L186.3 96 96 186.3c-6.3 6.3-9.7 14.4-9.7 23.1V384c0 17.7 14.3 32 32 32h160c13.2 0 24.6-8.1 29.5-20.6l40-104c1-2.6 1.5-5.3 1.5-8.1V240z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleVote(i, "down")}
+                      disabled={Boolean(votes[i])}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: votes[i] ? "not-allowed" : "pointer",
+                        color: votes[i] === "down" ? "#007BFF" : "#888",
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 320 512"
+                        height="16"
+                        width="16"
+                        fill="currentColor"
+                      >
+                        <path d="M216 512h80c13.3 0 24-10.7 24-24V200c0-13.3-10.7-24-24-24h-80c-13.3 0-24 10.7-24 24v288c0 13.3 10.7 24 24 24zM16 272c0 17.7 14.3 32 32 32h85.4l-9.7 44.3-1 5.2c0 5.9 2.3 11.6 6.6 15.8l20.4 20.7L224 325.7c6.3-6.3 9.7-14.4 9.7-23.1V128c0-17.7-14.3-32-32-32H41.7C28.5 96 17.1 104.1 12.2 116.6l-40 104c-1 2.6-1.5 5.3-1.5 8.1V272z" />
+                      </svg>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

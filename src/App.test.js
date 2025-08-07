@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import clientConfig from './client_config';
+
+jest.mock('react-markdown', () => ({ children }) => <div>{children}</div>);
 
 const SITE_KEY = 'test-key';
 
@@ -12,6 +15,6 @@ test('renders header', () => {
       <App />
     </GoogleReCaptchaProvider>
   );
-  const heading = screen.getByText(/Ask/i);
+  const heading = screen.getByText(clientConfig.prairiepastorate.label);
   expect(heading).toBeInTheDocument();
 });
