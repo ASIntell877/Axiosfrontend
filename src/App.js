@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import clientConfig from "./client_config";
 import ReactMarkdown from "react-markdown"
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
 // Default to current origin if no environment variable is provided
@@ -349,11 +350,15 @@ async function handleVote(messageId, value) {
                   ) : isVideo ? (
                     <video controls src={content} style={{ width: "100%", maxWidth: "600px", borderRadius: "8px" }} />
                   ) : (
-                    <ReactMarkdown components={{ a: ({ node, ...props }) => (
-                      <a {...props} target="_blank" rel="noopener noreferrer" />
-                    )}}>
-                      {content}
-                    </ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a {...props} target="_blank" rel="noopener noreferrer" />
+                        )
+                      }}
+                    >
+  {content.replace(/^\+\s*/gm, "").trim()}
+</ReactMarkdown>
                   )
                 ) : (
                   <div style={{ whiteSpace: "pre-wrap" }}>{content}</div>
@@ -380,9 +385,7 @@ async function handleVote(messageId, value) {
                       aria-label="Mark helpful"
                       title="Resolved my issue"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" height="16" width="16" fill="currentColor">
-                        <path d="M104 0H24C10.7 0 0 10.7 0 24V312c0 13.3 10.7 24 24 24h80c13.3 0 24-10.7 24-24V24c0-13.3-10.7-24-24-24zm216 240c0-17.7-14.3-32-32-32H202.6l9.7-44.3 1-5.2c0-5.9-2.3-11.6-6.6-15.8L186.3 96 96 186.3c-6.3 6.3-9.7 14.4-9.7 23.1V384c0 17.7 14.3 32 32 32h160c13.2 0 24.6-8.1 29.5-20.6l40-104c1-2.6 1.5-5.3 1.5-8.1V240z" />
-                      </svg>
+                      <ThumbsUp size={20} />
                     </button>
 
                     <button
@@ -397,9 +400,7 @@ async function handleVote(messageId, value) {
                       aria-label="Mark unhelpful"
                       title="Didn't resolve"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" height="16" width="16" fill="currentColor">
-                      <path d="M216 512h80c13.3 0 24-10.7 24-24V200c0-13.3-10.7-24-24-24h-80c-13.3 0-24 10.7-24 24v288c0 13.3 10.7 24 24 24zM16 272c0 17.7 14.3 32 32 32h85.4l-9.7 44.3-1 5.2c0 5.9 2.3 11.6 6.6 15.8l20.4 20.7L224 325.7c6.3-6.3 9.7-14.4 9.7-23.1V128c0-17.7-14.3-32-32-32H41.7C28.5 96 17.1 104.1 12.2 116.6l-40 104c-1 2.6-1.5 5.3-1.5 8.1V272z" />
-                      </svg>
+                      <ThumbsDown size={20} />
                     </button>
                   </div>
                 )}
