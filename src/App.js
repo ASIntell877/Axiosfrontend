@@ -100,31 +100,39 @@ if (!clientId) {
   const showSources = Boolean(client.showSources);
   const showFeedback = client.showFeedback ?? false;
 
-   // === Hydrate history from backend on load ===
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const res = await fetch(
-          `${BACKEND_URL}/history?client_id=${clientId}&chat_id=${chatId}`,
-          { headers: { 'x-api-key': REACT_API_KEY } }
+// === Hydrate history from backend on load (proxy-style) ===
+useEffect(() => {
+  async function loadHistory() {
+    try {
+      const token = executeRecaptcha ? await executeRecaptcha("history") : "";
+      const res = await fetch(`${BACKEND_URL}/proxy-history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: clientId,
+          chat_id: chatId,
+          recaptcha_token: token,
+        }),
+      });
+      if (res.ok) {
+        const { history } = await res.json();
+        setMessages(
+          (history || []).map((m) => ({
+            sender: m.role === "assistant" ? "bot" : "user",
+            text: m.text,
+            message_id: m.message_id,
+          }))
         );
-        if (res.ok) {
-          const { history } = await res.json();
-          // history is an array of { role: "user"|"assistant", text: "…", message_id: "..." }
-          setMessages(
-            history.map((m) => ({
-              sender: m.role === "assistant" ? "bot" : "user",
-              text: m.text,
-              message_id: m.message_id,
-            }))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to load chat history:", err);
+      } else {
+        console.warn("proxy-history failed:", res.status, await res.text());
       }
+    } catch (err) {
+      console.error("Failed to load chat history:", err);
     }
-    loadHistory();
-  }, [clientId, chatId]);
+  }
+  loadHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [clientId, chatId]);
 
 
   
@@ -233,23 +241,22 @@ if (!clientId) {
   };
 
 async function handleVote(messageId, value) {
-  if (!messageId) return; // safety guard
+  if (!messageId) return;
 
   // optimistic UI
   setVotes(prev => ({ ...prev, [messageId]: value }));
 
   try {
-    const res = await fetch(`${BACKEND_URL}/feedback`, {
+    const token = executeRecaptcha ? await executeRecaptcha("feedback") : "";
+    const res = await fetch(`${BACKEND_URL}/proxy-feedback`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": REACT_API_KEY, // REQUIRED by backend
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         client_id: clientId,
         message_id: messageId,
-        user_id: userId,   // localStorage session id
-        vote: value,       // "up" | "down"
+        user_id: userId,      // localStorage session id
+        vote: value,          // "up" | "down"
+        recaptcha_token: token,
       }),
     });
 
@@ -364,7 +371,7 @@ async function handleVote(messageId, value) {
                   <div style={{ whiteSpace: "pre-wrap" }}>{content}</div>
                 )}
 
-                + {msg.sender === "bot" && showFeedback && msg.message_id && (
+                {msg.sender === "bot" && showFeedback && msg.message_id && (
                   <div
                     style={{
                       display: "flex",
