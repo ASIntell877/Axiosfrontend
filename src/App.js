@@ -219,6 +219,9 @@ function App() {
     ]);
     setQuestion("");
 
+    // Track whether we ever received a bot message id during the stream
+    let finalBotMessageId = null;
+
     try {
       let token = "";
       if (executeRecaptcha) {
@@ -249,13 +252,13 @@ function App() {
       let buffer = "";
       let done = false;
       let finalUserMessageId = null;
-      let finalBotMessageId = null;
       let finalSources = [];
 
       while (!done) {
         const { value, done: readerDone } = await reader.read();
-        if (readerDone) break;
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value || new Uint8Array(), {
+          stream: !readerDone,
+        });
         let lines = buffer.split("\n");
         buffer = lines.pop();
         for (const line of lines) {
@@ -291,8 +294,47 @@ function App() {
           if (parsed.user_message_id) finalUserMessageId = parsed.user_message_id;
           if (parsed.message_id) finalBotMessageId = parsed.message_id;
           if (parsed.source_documents || parsed.sources) {
-            finalSources = parsed.source_documents || parsed.sources;
+            finalSources.push(...(parsed.source_documents || parsed.sources));
           }
+        }
+        if (readerDone) break;
+      }
+
+      buffer += decoder.decode();
+      let remainingLines = buffer.split("\n");
+      for (const line of remainingLines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const data = trimmed.slice(5).trim();
+        if (!data) continue;
+        if (data === "[DONE]") {
+          break;
+        }
+        let parsed;
+        try {
+          parsed = JSON.parse(data);
+        } catch {
+          continue;
+        }
+
+        if (parsed.token) {
+          setMessages((ms) => {
+            const updated = [...ms];
+            const last = updated.length - 1;
+            if (updated[last].sender === "bot") {
+              updated[last] = {
+                ...updated[last],
+                text: (updated[last].text || "") + parsed.token,
+              };
+            }
+            return updated;
+          });
+        }
+
+        if (parsed.user_message_id) finalUserMessageId = parsed.user_message_id;
+        if (parsed.message_id) finalBotMessageId = parsed.message_id;
+        if (parsed.source_documents || parsed.sources) {
+          finalSources = parsed.source_documents || parsed.sources;
         }
       }
 
@@ -318,12 +360,40 @@ function App() {
         return updated;
       });
 
-      if (showSources) setSources(finalSources);
+      if (showSources) {
+        const uniqueSources = [];
+        const seen = new Set();
+        for (const src of finalSources) {
+          const key = JSON.stringify(src);
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueSources.push(src);
+          }
+        }
+        setSources(uniqueSources);
+      }
     } catch (err) {
       console.error(err);
       setError("Error connecting to server.");
+
+      // Remove placeholder bot message if stream never returned a message id
+      if (!finalBotMessageId) {
+        setMessages((ms) => {
+          const updated = [...ms];
+          const last = updated.length - 1;
+          if (
+            updated[last] &&
+            updated[last].sender === "bot" &&
+            updated[last].message_id == null
+          ) {
+            updated.pop();
+          }
+          return updated;
+        });
+      }
     } finally {
       setStreaming(false);
+      setAbortController(null);
       if (inputRef.current) {
         inputRef.current.focus();
       }
