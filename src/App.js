@@ -442,37 +442,63 @@ function App() {
                           Why was this unhelpful?
                         </label>
 
-                        <select
-                          value={reasonDrafts[msg.message_id] ?? ""}
-                          onChange={(e) =>
-                            setReasonDrafts((prev) => ({ ...prev, [msg.message_id]: e.target.value }))
-                          }
-                          style={{
-                            width: "100%",
-                            borderRadius: 8,
-                            padding: "0.5rem",
-                            border: "1px solid #ddd",
-                            background: "rgba(255,255,255,0.9)",
-                            fontFamily: client.fontFamily,
-                          }}
-                        >
-                          <option value="" disabled>Select a reason</option>
-                          {REASONS.map((r) => (
-                            <option key={r} value={r}>{r}</option>
-                          ))}
-                        </select>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: "0.5rem" }}>
+                          {REASONS.map((r) => {
+                            const selected = reasonDrafts[msg.message_id] === r;
+                            return (
+                              <button
+                                key={r}
+                                onClick={() =>
+                                  setReasonDrafts((prev) => ({ ...prev, [msg.message_id]: r }))
+                                }
+                                style={{
+                                  border: selected ? "1px solid #007BFF" : "1px solid #ccc",
+                                  background: selected ? "rgba(0,123,255,0.1)" : "white",
+                                  borderRadius: 999,
+                                  padding: "6px 10px",
+                                  cursor: "pointer",
+                                  fontFamily: client.fontFamily,
+                                  fontSize: "0.85rem",
+                                  transition: "all 0.2s ease-in-out",
+                                }}
+                              >
+                                {r}
+                              </button>
+                            );
+                          })}
+                        </div>
 
-                        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", justifyContent: "flex-end" }}>
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
                           <button
                             onClick={() => setReasonOpenFor(null)}
-                            style={{ background: "none", border: "1px solid #ccc", borderRadius: 8, padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                            style={{
+                              background: "none",
+                              border: "1px solid #ccc",
+                              borderRadius: 8,
+                              padding: "0.25rem 0.5rem",
+                              cursor: "pointer",
+                            }}
                           >
                             Cancel
                           </button>
                           <button
-                            onClick={() => handleVote(msg.message_id, "down", reasonDrafts[msg.message_id])}
+                            onClick={() =>
+                              handleVote(
+                                msg.message_id,
+                                "down",
+                                reasonDrafts[msg.message_id]
+                              )
+                            }
                             disabled={!reasonDrafts[msg.message_id]}
-                            style={{ background: "#007BFF", color: "#fff", border: "none", borderRadius: 8, padding: "0.25rem 0.75rem", cursor: "pointer", opacity: reasonDrafts[msg.message_id] ? 1 : 0.6 }}
+                            style={{
+                              background: "#007BFF",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: 8,
+                              padding: "0.25rem 0.75rem",
+                              cursor: "pointer",
+                              opacity: reasonDrafts[msg.message_id] ? 1 : 0.6,
+                            }}
                           >
                             Submit
                           </button>
