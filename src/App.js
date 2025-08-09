@@ -31,7 +31,12 @@ function App() {
   const [reasonOpenFor, setReasonOpenFor] = useState(null);
   // free-text drafts keyed by message_id
   const [reasonDrafts, setReasonDrafts] = useState({});
-
+  const REASONS = [
+    "Irrelevant / off-topic",
+    "Incorrect / factually wrong",
+    "Unclear / hard to understand",
+    "Missing sources / citations",
+  ];
 
   useEffect(() => {
     if (!envBackendUrl) {
@@ -433,22 +438,30 @@ function App() {
 
                     {reasonOpenFor === msg.message_id && !votes[msg.message_id] && (
                       <div style={{ marginTop: "0.5rem" }}>
-                        <textarea
-                          rows={2}
-                          placeholder="What didn’t work? (optional)"
-                          value={reasonDrafts[msg.message_id] || ""}
+                        <label style={{ display: "block", marginBottom: 6, color: "#555" }}>
+                          Why was this unhelpful?
+                        </label>
+
+                        <select
+                          value={reasonDrafts[msg.message_id] ?? ""}
                           onChange={(e) =>
-                            setReasonDrafts(prev => ({ ...prev, [msg.message_id]: e.target.value }))
+                            setReasonDrafts((prev) => ({ ...prev, [msg.message_id]: e.target.value }))
                           }
                           style={{
                             width: "100%",
                             borderRadius: 8,
                             padding: "0.5rem",
                             border: "1px solid #ddd",
-                            fontFamily: client.fontFamily,
                             background: "rgba(255,255,255,0.9)",
+                            fontFamily: client.fontFamily,
                           }}
-                        />
+                        >
+                          <option value="" disabled>Select a reason</option>
+                          {REASONS.map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
+
                         <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", justifyContent: "flex-end" }}>
                           <button
                             onClick={() => setReasonOpenFor(null)}
@@ -458,7 +471,8 @@ function App() {
                           </button>
                           <button
                             onClick={() => handleVote(msg.message_id, "down", reasonDrafts[msg.message_id])}
-                            style={{ background: "#007BFF", color: "#fff", border: "none", borderRadius: 8, padding: "0.25rem 0.75rem", cursor: "pointer" }}
+                            disabled={!reasonDrafts[msg.message_id]}
+                            style={{ background: "#007BFF", color: "#fff", border: "none", borderRadius: 8, padding: "0.25rem 0.75rem", cursor: "pointer", opacity: reasonDrafts[msg.message_id] ? 1 : 0.6 }}
                           >
                             Submit
                           </button>
