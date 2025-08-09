@@ -17,3 +17,18 @@ code {
 .grecaptcha-badge {
   visibility: hidden !important;
 }
+
+/* Typing indicator styles */
+.typing-indicator {
+  font-style: italic;
+}
+
+.typing-cursor {
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

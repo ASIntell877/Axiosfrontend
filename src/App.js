@@ -19,12 +19,19 @@ function generateUUID() {
   return randomPart + timePart;
 }
 
+const TypingIndicator = () => (
+  <div className="typing-indicator">
+    Assistant is typing…<span className="typing-cursor">|</span>
+  </div>
+);
+
+
 function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [sources, setSources] = useState([]);
   const [votes, setVotes] = useState({}); // keys: message_id -> "up"|"down"
-  const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState(null);
   const [configWarning, setConfigWarning] = useState(null)
   // which message_id currently has the "why?" input open
@@ -149,18 +156,30 @@ function App() {
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
 
+    // Abort controller for in-flight requests
+  const [abortController, setAbortController] = useState(null);
+
+  // Cleanup any in-flight request when starting a new one or unmounting
+  useEffect(() => {
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [abortController]);
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
 
-  // Keep focus on the textarea once loading finishes
+  // Keep focus on the textarea once streaming finishes
   useEffect(() => {
-    if (!loading && inputRef.current) {
+    if (!streaming && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [loading]);
+  }, [streaming]);
 
   // Scroll *that* container to bottom on every messages change
   useEffect(() => {
@@ -184,7 +203,14 @@ function App() {
       return;
     }
 
-    setLoading(true);
+    // Abort any existing request before starting a new one
+    if (abortController) {
+      abortController.abort();
+    }
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    setStreaming(true);
     if (showSources) setSources([]);
     // Add user's message with placeholder for message_id
     setMessages((ms) => [
@@ -199,7 +225,7 @@ function App() {
         token = await executeRecaptcha("chat");
       }
 
-      const res = await fetch(`${BACKEND_URL}/proxy-chat`, {
+      const res = await fetch(`${BACKEND_URL}/proxy-chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -208,41 +234,96 @@ function App() {
           question,
           recaptcha_token: token,
         }),
+        signal: controller.signal,
       });
-      if (!res.ok) throw new Error(res.statusText);
+      if (!res.ok || !res.body) throw new Error(res.statusText);
 
-      const data = await res.json();
+      // Insert placeholder bot message for streaming updates
+      setMessages((ms) => [
+        ...ms,
+        { sender: "bot", text: "", message_id: null },
+      ]);
 
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let done = false;
+      let finalUserMessageId = null;
+      let finalBotMessageId = null;
+      let finalSources = [];
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        if (readerDone) break;
+        buffer += decoder.decode(value, { stream: true });
+        let lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const data = trimmed.slice(5).trim();
+          if (!data) continue;
+          if (data === "[DONE]") {
+            done = true;
+            break;
+          }
+          let parsed;
+          try {
+            parsed = JSON.parse(data);
+          } catch {
+            continue;
+          }
+
+          if (parsed.token) {
+            setMessages((ms) => {
+              const updated = [...ms];
+              const last = updated.length - 1;
+              if (updated[last].sender === "bot") {
+                updated[last] = {
+                  ...updated[last],
+                  text: (updated[last].text || "") + parsed.token,
+                };
+              }
+              return updated;
+            });
+          }
+
+          if (parsed.user_message_id) finalUserMessageId = parsed.user_message_id;
+          if (parsed.message_id) finalBotMessageId = parsed.message_id;
+          if (parsed.source_documents || parsed.sources) {
+            finalSources = parsed.source_documents || parsed.sources;
+          }
+        }
+      }
+
+      // Update message IDs after stream completes
       setMessages((ms) => {
         const updated = [...ms];
-        const lastIdx = updated.length - 1;
-        // Update the last user message with its message_id if provided
-        if (
-          lastIdx >= 0 &&
-          updated[lastIdx].sender === "user" &&
-          data.user_message_id
-        ) {
-          updated[lastIdx] = {
-            ...updated[lastIdx],
-            message_id: data.user_message_id,
-          };
+        // Update last user message id
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].sender === "user" && updated[i].message_id == null) {
+            updated[i] = {
+              ...updated[i],
+              message_id: finalUserMessageId || updated[i].message_id,
+            };
+            break;
+          }
         }
-        // Append assistant response with message_id
-        const botMessageId = generateUUID();
-        updated.push({
-          sender: "bot",
-          text: data.answer,
-          message_id: botMessageId,
-        });
+        // Update last bot message id
+        const last = updated.length - 1;
+        if (updated[last] && updated[last].sender === "bot" && finalBotMessageId) {
+          updated[last] = { ...updated[last], message_id: finalBotMessageId };
+        }
 
         return updated;
       });
-      if (showSources) setSources(data.source_documents || []);
+
+      if (showSources) setSources(finalSources);
     } catch (err) {
       console.error(err);
       setError("Error connecting to server.");
     } finally {
-      setLoading(false);
+      setStreaming(false);
       if (inputRef.current) {
         inputRef.current.focus();
       }
@@ -512,7 +593,7 @@ function App() {
             </div>
           );
         })}
-        {loading && <div style={{ fontStyle: "italic" }}>Thinking...</div>}
+        {streaming && <TypingIndicator />}
       </div>
 
       {/* Input */}
@@ -540,15 +621,15 @@ function App() {
             borderRadius: "20px",
             backgroundColor: "rgba(255,255,255,0.8)",
           }}
-          disabled={loading}
+          disabled={streaming}
         />
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={streaming}
           style={{
             backgroundColor: "transparent",
             border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor: streaming ? "not-allowed" : "pointer",
             fontSize: "1.5rem",
             color: "#007BFF",
             padding: 0,
