@@ -27,6 +27,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [configWarning, setConfigWarning] = useState(null)
+  // which message_id currently has the "why?" input open
+  const [reasonOpenFor, setReasonOpenFor] = useState(null);
+  // free-text drafts keyed by message_id
+  const [reasonDrafts, setReasonDrafts] = useState({});
 
 
   useEffect(() => {
@@ -42,12 +46,12 @@ function App() {
 
   // generate chatid - load stable session ID - clear chat on tab close
   const [chatId, setChatId] = useState(() => {
-  const existing = sessionStorage.getItem("chatId");
-  if (existing) return existing;
-  const id = generateUUID();
-  sessionStorage.setItem("chatId", id);
-  return id;
-});
+    const existing = sessionStorage.getItem("chatId");
+    if (existing) return existing;
+    const id = generateUUID();
+    sessionStorage.setItem("chatId", id);
+    return id;
+  });
 
   // Persistent user identifier stored in localStorage
   const [userId] = useState(() => {
@@ -67,32 +71,32 @@ function App() {
     setVotes({});
   }
 
-// Detect clientId from query param, URL path, or subdomain
-let clientId;
+  // Detect clientId from query param, URL path, or subdomain
+  let clientId;
 
-// 1. Try URL param (?client=samuel)
-const urlParams = new URLSearchParams(window.location.search);
-clientId = urlParams.get("client");
+  // 1. Try URL param (?client=samuel)
+  const urlParams = new URLSearchParams(window.location.search);
+  clientId = urlParams.get("client");
 
-// 2. Try first path segment (e.g., /samuel)
-if (!clientId) {
-  const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
-  clientId = pathMatch ? pathMatch[1] : null;
-}
-
-// 3. Try subdomain (e.g., samuel.axiostratintelligence.com)
-if (!clientId) {
-  const hostname = window.location.hostname;
-  const parts = hostname.split(".");
-  if (parts.length > 2) {
-    clientId = parts[0].toLowerCase() === "www" ? parts[1] : parts[0];
+  // 2. Try first path segment (e.g., /samuel)
+  if (!clientId) {
+    const pathMatch = window.location.pathname.match(/^\/([^\/?#]+)/);
+    clientId = pathMatch ? pathMatch[1] : null;
   }
-}
 
-// 4. Fallback default
-if (!clientId) {
-  clientId = "prairiepastorate";
-}
+  // 3. Try subdomain (e.g., samuel.axiostratintelligence.com)
+  if (!clientId) {
+    const hostname = window.location.hostname;
+    const parts = hostname.split(".");
+    if (parts.length > 2) {
+      clientId = parts[0].toLowerCase() === "www" ? parts[1] : parts[0];
+    }
+  }
+
+  // 4. Fallback default
+  if (!clientId) {
+    clientId = "prairiepastorate";
+  }
   // Set constant for client configurations as client
   const client = clientConfig[clientId] || clientConfig.prairiepastorate;
 
@@ -100,42 +104,42 @@ if (!clientId) {
   const showSources = Boolean(client.showSources);
   const showFeedback = client.showFeedback ?? false;
 
-// === Hydrate history from backend on load (proxy-style) ===
-useEffect(() => {
-  async function loadHistory() {
-    try {
-      const token = executeRecaptcha ? await executeRecaptcha("history") : "";
-      const res = await fetch(`${BACKEND_URL}/proxy-history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client_id: clientId,
-          chat_id: chatId,
-          recaptcha_token: token,
-        }),
-      });
-      if (res.ok) {
-        const { history } = await res.json();
-        setMessages(
-          (history || []).map((m) => ({
-            sender: m.role === "assistant" ? "bot" : "user",
-            text: m.text,
-            message_id: m.message_id,
-          }))
-        );
-      } else {
-        console.warn("proxy-history failed:", res.status, await res.text());
+  // === Hydrate history from backend on load (proxy-style) ===
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const token = executeRecaptcha ? await executeRecaptcha("history") : "";
+        const res = await fetch(`${BACKEND_URL}/proxy-history`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: clientId,
+            chat_id: chatId,
+            recaptcha_token: token,
+          }),
+        });
+        if (res.ok) {
+          const { history } = await res.json();
+          setMessages(
+            (history || []).map((m) => ({
+              sender: m.role === "assistant" ? "bot" : "user",
+              text: m.text,
+              message_id: m.message_id,
+            }))
+          );
+        } else {
+          console.warn("proxy-history failed:", res.status, await res.text());
+        }
+      } catch (err) {
+        console.error("Failed to load chat history:", err);
       }
-    } catch (err) {
-      console.error("Failed to load chat history:", err);
     }
-  }
-  loadHistory();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [clientId, chatId]);
+    loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, chatId]);
 
 
-  
+
   // **NEW**: ref to the scrollable container
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -225,7 +229,7 @@ useEffect(() => {
           text: data.answer,
           message_id: botMessageId,
         });
-        
+
         return updated;
       });
       if (showSources) setSources(data.source_documents || []);
@@ -234,49 +238,58 @@ useEffect(() => {
       setError("Error connecting to server.");
     } finally {
       setLoading(false);
-       if (inputRef.current) {
+      if (inputRef.current) {
         inputRef.current.focus();
       }
     }
   };
 
-async function handleVote(messageId, value) {
-  if (!messageId) return;
+  async function handleVote(messageId, value, reason) {
+    if (!messageId) return;
 
-  // optimistic UI
-  setVotes(prev => ({ ...prev, [messageId]: value }));
+    // optimistic UI (lock the buttons)
+    setVotes(prev => ({ ...prev, [messageId]: value }));
 
-  try {
-    const token = executeRecaptcha ? await executeRecaptcha("feedback") : "";
-    const res = await fetch(`${BACKEND_URL}/proxy-feedback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: clientId,
-        message_id: messageId,
-        user_id: userId,      // localStorage session id
-        vote: value,          // "up" | "down"
-        recaptcha_token: token,
-      }),
-    });
+    try {
+      const token = executeRecaptcha ? await executeRecaptcha("feedback") : "";
+      const res = await fetch(`${BACKEND_URL}/proxy-feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: clientId,
+          message_id: messageId,
+          user_id: userId,
+          vote: value,               // "up" | "down"
+          reason: reason || null,    // <-- optional
+          recaptcha_token: token,
+        }),
+      });
 
-    if (!res.ok) {
-      console.warn("Feedback rejected:", res.status, await res.text());
+      if (!res.ok) {
+        console.warn("Feedback rejected:", res.status, await res.text());
+        setVotes(prev => {
+          const copy = { ...prev };
+          delete copy[messageId];
+          return copy;
+        });
+      }
+    } catch (e) {
+      console.error("Feedback error:", e);
       setVotes(prev => {
         const copy = { ...prev };
         delete copy[messageId];
         return copy;
       });
+    } finally {
+      // close the reason UI & clear draft for this message
+      setReasonOpenFor(curr => (curr === messageId ? null : curr));
+      setReasonDrafts(prev => {
+        const copy = { ...prev };
+        delete copy[messageId];
+        return copy;
+      });
     }
-  } catch (e) {
-    console.error("Feedback error:", e);
-    setVotes(prev => {
-      const copy = { ...prev };
-      delete copy[messageId];
-      return copy;
-    });
   }
-}
 
   const containerStyle = {
     display: "flex",
@@ -289,11 +302,11 @@ async function handleVote(messageId, value) {
     opacity: client.backgroundOpacity,
     ...(client.backgroundImage
       ? {
-          backgroundImage: client.backgroundImage,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-        }
+        backgroundImage: client.backgroundImage,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+      }
       : client.backgroundColor && { backgroundColor: client.backgroundColor }),
   };
 
@@ -310,25 +323,25 @@ async function handleVote(messageId, value) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={{ color: client.labelColor || "inherit" }}>{client.label}</h2>
         <button onClick={clearChat} style={{ background: "none", border: "none", color: "#007BFF", cursor: "pointer" }}>
-        Clear Chat
-      </button>
+          Clear Chat
+        </button>
       </div>
 
       {/* Conversation (scrollable) */}
-      
+
       <div ref={messagesContainerRef} style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "1rem",
-          backgroundColor: "rgba(244, 244, 249, 0.8)",
-          borderRadius: "8px",
-          marginBottom: "1rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.5rem",
-        }}
+        flex: 1,
+        overflowY: "auto",
+        padding: "1rem",
+        backgroundColor: "rgba(244, 244, 249, 0.8)",
+        borderRadius: "8px",
+        marginBottom: "1rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.5rem",
+      }}
       >
-        
+
         {messages.map((msg, i) => {
           const content = msg.text.trim();
           const isImage = isImageUrl(content);
@@ -364,53 +377,97 @@ async function handleVote(messageId, value) {
                         )
                       }}
                     >
-  {content.replace(/^\+\s*/gm, "").trim()}
-</ReactMarkdown>
+                      {content.replace(/^\+\s*/gm, "").trim()}
+                    </ReactMarkdown>
                   )
                 ) : (
                   <div style={{ whiteSpace: "pre-wrap" }}>{content}</div>
                 )}
 
                 {msg.sender === "bot" && showFeedback && msg.message_id && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: "0.25rem",
-                      marginTop: "0.25rem",
-                    }}
-                  >
-                    <button
-                      onClick={() => handleVote(msg.message_id, "up")}
-                      disabled={!msg.message_id || Boolean(votes[msg.message_id])}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: !msg.message_id || votes[msg.message_id] ? "not-allowed" : "pointer",
-                        color: votes[msg.message_id] === "up" ? "#007BFF" : "#888",
-                      }}
-                      aria-label="Mark helpful"
-                      title="Resolved my issue"
-                    >
-                      <ThumbsUp size={20} />
-                    </button>
+                  <div style={{ marginTop: "0.25rem" }}>
+                    <small style={{ display: "block", marginBottom: "0.25rem", color: "#555" }}>
+                      Did this chat resolve your issue?
+                    </small>
 
-                    <button
-                      onClick={() => handleVote(msg.message_id, "down")}
-                      disabled={!msg.message_id || Boolean(votes[msg.message_id])}
+                    <div
                       style={{
-                        background: "none",
-                        border: "none",
-                        cursor: !msg.message_id || votes[msg.message_id] ? "not-allowed" : "pointer",
-                        color: votes[msg.message_id] === "down" ? "#007BFF" : "#888",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: "0.25rem",
                       }}
-                      aria-label="Mark unhelpful"
-                      title="Didn't resolve"
                     >
-                      <ThumbsDown size={20} />
-                    </button>
+                      <button
+                        onClick={() => handleVote(msg.message_id, "up")}
+                        disabled={!msg.message_id || Boolean(votes[msg.message_id])}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: !msg.message_id || votes[msg.message_id] ? "not-allowed" : "pointer",
+                          color: votes[msg.message_id] === "up" ? "#007BFF" : "#888",
+                        }}
+                        aria-label="Mark helpful"
+                        title="Resolved my issue"
+                      >
+                        <ThumbsUp size={20} />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (!msg.message_id || votes[msg.message_id]) return;
+                          setReasonOpenFor(prev => (prev === msg.message_id ? null : msg.message_id));
+                        }}
+                        disabled={!msg.message_id || Boolean(votes[msg.message_id])}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: !msg.message_id || votes[msg.message_id] ? "not-allowed" : "pointer",
+                          color: votes[msg.message_id] === "down" ? "#007BFF" : "#888",
+                        }}
+                        aria-label="Mark unhelpful"
+                        title="Didn't resolve"
+                      >
+                        <ThumbsDown size={20} />
+                      </button>
+                    </div>
+
+                    {reasonOpenFor === msg.message_id && !votes[msg.message_id] && (
+                      <div style={{ marginTop: "0.5rem" }}>
+                        <textarea
+                          rows={2}
+                          placeholder="What didn’t work? (optional)"
+                          value={reasonDrafts[msg.message_id] || ""}
+                          onChange={(e) =>
+                            setReasonDrafts(prev => ({ ...prev, [msg.message_id]: e.target.value }))
+                          }
+                          style={{
+                            width: "100%",
+                            borderRadius: 8,
+                            padding: "0.5rem",
+                            border: "1px solid #ddd",
+                            fontFamily: client.fontFamily,
+                            background: "rgba(255,255,255,0.9)",
+                          }}
+                        />
+                        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", justifyContent: "flex-end" }}>
+                          <button
+                            onClick={() => setReasonOpenFor(null)}
+                            style={{ background: "none", border: "1px solid #ccc", borderRadius: 8, padding: "0.25rem 0.5rem", cursor: "pointer" }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleVote(msg.message_id, "down", reasonDrafts[msg.message_id])}
+                            style={{ background: "#007BFF", color: "#fff", border: "none", borderRadius: 8, padding: "0.25rem 0.75rem", cursor: "pointer" }}
+                          >
+                            Submit
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
+
               </div>
             </div>
           );
